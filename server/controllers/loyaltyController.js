@@ -7,25 +7,19 @@ import { broadcastRealtimeEvent } from '../services/realtimeService.js';
 // Safely drop old TTL index so expired coupons are soft-preserved with reason rather than wiped out
 OfferCoupon.collection?.dropIndex('expiresAt_1').catch(() => {});
 
-// Helper: Soft-expire coupons that have passed their validity period (2 minutes in TEST MODE)
+// Helper: Soft-expire coupons that have passed their 35-day validity period without deleting them
 export const markExpiredCoupons = async () => {
   try {
-    const now = new Date();
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-
     const result = await OfferCoupon.updateMany(
       {
         status: 'active',
         isRedeemed: false,
-        $or: [
-          { expiresAt: { $lt: now } },
-          { createdAt: { $lt: twoMinutesAgo } },
-        ],
+        expiresAt: { $lt: new Date() },
       },
       {
         $set: {
           status: 'expired',
-          expiredReason: 'Validity duration of 2 minutes (TEST MODE) expired without salon counter redemption.',
+          expiredReason: 'Validity duration of 35 days expired without salon counter redemption.',
         },
       }
     );
@@ -45,10 +39,10 @@ const generateCouponCode = () => {
   return code;
 };
 
-// Helper: Check and apply 3-minute inactivity decay to user's stamps (TEMPORARY TEST MODE)
-// If user does not visit within 3 minutes of last stamp, decrement stamps by 1 (minimum 0)
+// Helper: Check and apply 45-day inactivity decay to user's stamps
+// If user does not visit within 45 days of last stamp, decrement stamps by 1 (minimum 0)
 export const applyStampInactivityCheck = async (user) => {
-  if (!user) return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0, minutesUntilDecay: 0 };
+  if (!user) return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0 };
 
   // If user has stamps > 0 but lastStampDate wasn't set previously, initialize it
   if (user.currentStamps > 0 && !user.lastStampDate) {
@@ -57,16 +51,15 @@ export const applyStampInactivityCheck = async (user) => {
   }
 
   if (user.currentStamps <= 0 || !user.lastStampDate) {
-    return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0, minutesUntilDecay: 0 };
+    return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0 };
   }
 
   const now = Date.now();
   const lastStampTime = new Date(user.lastStampDate).getTime();
-  const elapsedMs = now - lastStampTime;
-  const INACTIVITY_MS = 3 * 60 * 1000; // 3 minutes TEST MODE
+  const elapsedDays = (now - lastStampTime) / (1000 * 60 * 60 * 24);
 
-  if (elapsedMs >= INACTIVITY_MS) {
-    const periods = Math.floor(elapsedMs / INACTIVITY_MS);
+  if (elapsedDays >= 45) {
+    const periods = Math.floor(elapsedDays / 45);
     const prevStamps = user.currentStamps;
     user.currentStamps = Math.max(0, user.currentStamps - periods);
     const stampsDecayed = prevStamps - user.currentStamps;
@@ -74,21 +67,20 @@ export const applyStampInactivityCheck = async (user) => {
     if (user.currentStamps === 0) {
       user.lastStampDate = null;
     } else {
-      user.lastStampDate = new Date(lastStampTime + periods * INACTIVITY_MS);
+      user.lastStampDate = new Date(lastStampTime + periods * 45 * 24 * 60 * 60 * 1000);
     }
     await user.save();
 
-    const msRemaining = user.lastStampDate
-      ? Math.max(0, (new Date(user.lastStampDate).getTime() + INACTIVITY_MS) - now)
+    const daysUntilDecay = user.lastStampDate
+      ? Math.max(0, Math.ceil(((new Date(user.lastStampDate).getTime() + 45 * 24 * 60 * 60 * 1000) - now) / (1000 * 60 * 60 * 24)))
       : 0;
-    const minutesUntilDecay = Math.max(0, Math.ceil(msRemaining / (1000 * 60)));
 
-    return { decayed: true, stampsDecayed, daysUntilDecay: minutesUntilDecay, minutesUntilDecay };
+    return { decayed: true, stampsDecayed, daysUntilDecay };
   }
 
-  const msRemaining = (lastStampTime + INACTIVITY_MS) - now;
-  const minutesUntilDecay = Math.max(0, Math.ceil(msRemaining / (1000 * 60)));
-  return { decayed: false, stampsDecayed: 0, daysUntilDecay: minutesUntilDecay, minutesUntilDecay };
+  const msRemaining = (lastStampTime + 45 * 24 * 60 * 60 * 1000) - now;
+  const daysUntilDecay = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+  return { decayed: false, stampsDecayed: 0, daysUntilDecay };
 };
 
 // 1. Admin Awards +1 Visit Stamp to Customer
@@ -142,7 +134,7 @@ export const addVisitStamp = async (req, res) => {
         user: user._id,
         title: offerTitle,
         discountType: offerDiscount,
-        expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes validity (TEST MODE)
+        expiresAt: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000), // 35 days validity
       });
 
       // RESET active stamps to 0 for next cycle
@@ -161,7 +153,7 @@ export const addVisitStamp = async (req, res) => {
       currentStamps: user.currentStamps,
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
-      daysUntilStampDecay: 3, // 3 minutes in TEST MODE
+      daysUntilStampDecay: 45,
       offerUnlocked,
       coupon: newCoupon,
       serviceName: serviceName || 'Salon Grooming & Haircut',
@@ -170,12 +162,12 @@ export const addVisitStamp = async (req, res) => {
 
     res.status(200).json({
       message: offerUnlocked
-        ? '🎉 Congratulations! 5th Stamp reached! 30% to 40% OFF Special Offer Coupon awarded (valid for 2 minutes for testing) and stamps reset to 0.'
-        : `Stamp awarded successfully! Customer now has ${user.currentStamps}/5 stamps. Next visit due within 3 minutes (Test Mode).`,
+        ? '🎉 Congratulations! 5th Stamp reached! 30% to 40% OFF Special Offer Coupon awarded (valid for 35 days) and stamps reset to 0.'
+        : `Stamp awarded successfully! Customer now has ${user.currentStamps}/5 stamps. Next visit due within 45 days.`,
       currentStamps: user.currentStamps,
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
-      daysUntilStampDecay: 3,
+      daysUntilStampDecay: 45,
       offerUnlocked,
       coupon: newCoupon,
       visit,
@@ -324,20 +316,17 @@ export const getMyLoyalty = async (req, res) => {
         .lean(),
     ]);
 
-    // Enhance active coupons with expiry countdown (2-min test mode)
+    // Enhance active coupons with expiry countdown and 5-day advance reminder warning
     const coupons = activeRawCoupons.map((c) => {
       const msLeft = new Date(c.expiresAt).getTime() - now;
-      const secondsLeft = Math.max(0, Math.ceil(msLeft / 1000));
-      const minutesLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60)));
-      const isExpiringSoon = msLeft <= 2 * 60 * 1000;
+      const daysRemaining = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+      const isExpiringSoon = daysRemaining <= 5;
       return {
         ...c,
-        secondsLeft,
-        minutesLeft,
-        daysRemaining: minutesLeft, // Test mode: minute countdown
+        daysRemaining,
         isExpiringSoon,
-        reminderMessage: msLeft > 0
-          ? `⚠️ TEST MODE: Coupon expires in ${secondsLeft}s (${minutesLeft}m) at ${new Date(c.expiresAt).toLocaleTimeString()}!`
+        reminderMessage: isExpiringSoon
+          ? `⚠️ Expiry Reminder: This coupon will expire in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} on ${new Date(c.expiresAt).toLocaleDateString()}! Please visit the salon to claim your discount.`
           : null,
       };
     });
@@ -358,10 +347,10 @@ export const getMyLoyalty = async (req, res) => {
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
       daysUntilStampDecay: decayInfo.daysUntilDecay,
-      isStampDecayWarning: decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 2,
+      isStampDecayWarning: decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5,
       stampDecayWarningMessage:
-        decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 2
-          ? `⚠️ Inactivity Alert: 1 stamp will expire in ${decayInfo.daysUntilDecay} min unless you visit the salon!`
+        decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5
+          ? `⚠️ Inactivity Alert: 1 stamp will expire in ${decayInfo.daysUntilDecay} day${decayInfo.daysUntilDecay === 1 ? '' : 's'} unless you visit the salon!`
           : null,
       stampsNeeded: Math.max(0, 5 - user.currentStamps),
       coupons,

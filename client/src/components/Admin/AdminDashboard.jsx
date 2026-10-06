@@ -1029,7 +1029,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                           </span>
                           {c.currentStamps > 0 && c.daysUntilStampDecay !== undefined && (
                             <div style={{ fontSize: '0.68rem', color: '#fca5a5', marginTop: '0.2rem', fontWeight: 600 }}>
-                              ⏳ Due in {c.daysUntilStampDecay}m (Test)
+                              ⏳ Due in {c.daysUntilStampDecay}d
                             </div>
                           )}
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
