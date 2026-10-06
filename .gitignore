@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Production Build outputs
+dist/
+*/dist/
+**/dist/
+
+# Environment and sensitive secrets
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Temporary test logs and automated browser snapshots
+.playwright-mcp/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Root testing screenshots
+/*.png
+/*.jpg
+/*.webp
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

@@ -1,0 +1,18 @@
+{
+  "project": "the_classsic_cut_salon",
+  "version": "1.0.0",
+  "stack": {
+    "frontend": "React 18 + Vite",
+    "styling": "Modern Vanilla CSS + Glassmorphism Tokens",
+    "animation": "GSAP 3 + ScrollTrigger",
+    "backend": "Node.js + Express.js REST API",
+    "database": "MongoDB (Mongoose ODM)",
+    "auth": "JWT + Email OTP + Google OAuth",
+    "testing": "Playwright"
+  },
+  "workflow": {
+    "planningMode": true,
+    "mobileFirst": true,
+    "securityChecklist": true
+  }
+}

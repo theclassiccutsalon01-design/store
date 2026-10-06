@@ -1,0 +1,1053 @@
+:root {
+  --font-serif: 'Cinzel', 'Playfair Display', Georgia, serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Color Palette */
+  --bg-main: #0b0c10;
+  --bg-surface: #13151b;
+  --bg-card: #181b24;
+  --bg-card-hover: #1f2330;
+  --bg-glass: rgba(19, 21, 27, 0.85);
+  --bg-glass-card: rgba(24, 27, 36, 0.7);
+
+  --gold-primary: #d4af37;
+  --gold-light: #f3e5ab;
+  --gold-dark: #aa820a;
+  --gold-gradient: linear-gradient(135deg, #f5d77f 0%, #d4af37 50%, #aa820a 100%);
+
+  --crimson-primary: #c52222;
+  --crimson-light: #e53e3e;
+  --crimson-gradient: linear-gradient(135deg, #e53e3e 0%, #b21e1e 100%);
+
+  --text-primary: #f8f6f0;
+  --text-secondary: #9ea3b5;
+  --text-muted: #646b80;
+  --border-subtle: rgba(212, 175, 55, 0.2);
+  --border-glow: rgba(212, 175, 55, 0.45);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 6px 20px rgba(212, 175, 55, 0.25);
+  --shadow-crimson: 0 6px 20px rgba(197, 34, 34, 0.35);
+
+  --nav-height: 72px;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: pan-y;
+}
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2e3d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-primary);
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, .font-serif {
+  font-family: var(--font-serif);
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.gold-text {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.crimson-text {
+  color: var(--crimson-light);
+}
+
+/* Container with fluid responsive padding from 320px mobile to 4K TV */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0.85rem;
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+}
+
+@media (min-width: 480px) {
+  .container {
+    padding: 0 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1480px;
+    padding: 0 2.5rem;
+  }
+}
+
+@media (min-width: 2200px) {
+  .container {
+    max-width: 1980px;
+    padding: 0 3.5rem;
+  }
+}
+
+@media (min-width: 3200px) {
+  .container {
+    max-width: 2700px;
+    padding: 0 4.5rem;
+  }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--gold-gradient);
+  color: #0b0c10;
+  box-shadow: var(--shadow-gold);
+  border-color: rgba(245, 215, 127, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+}
+
+.btn-crimson {
+  background: var(--crimson-gradient);
+  color: #ffffff;
+  box-shadow: var(--shadow-crimson);
+}
+
+.btn-crimson:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(197, 34, 34, 0.5);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold-primary);
+  border-color: var(--border-glow);
+  backdrop-filter: blur(8px);
+}
+
+.btn-outline:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--gold-primary);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* Glassmorphic Cards */
+.glass-card {
+  background: var(--bg-glass-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-md);
+}
+
+/* Section Header */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-tagline {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.3rem 0.9rem;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-gold {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-primary);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.badge-crimson {
+  background: rgba(197, 34, 34, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(197, 34, 34, 0.3);
+}
+
+.badge-green {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+/* Modal Backdrop */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 8, 11, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+  overscroll-behavior: contain;
+}
+
+.modal-content {
+  background: #141720;
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  position: relative;
+  max-height: min(90vh, 90dvh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+/* Inputs */
+.input-group {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.input-field {
+  width: 100%;
+  background: #0d0f15;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.input-with-icons {
+  padding-left: 2.85rem !important;
+  padding-right: 2.85rem !important;
+}
+
+/* Floating Bottom Mobile Nav */
+.mobile-bottom-nav {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(14, 16, 22, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle);
+  z-index: 999;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease;
+}
+
+.mobile-nav-item.active,
+.mobile-nav-item:hover {
+  color: var(--gold-primary);
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 22px rgba(212, 175, 55, 0.7); }
+}
+
+@keyframes soundBar {
+  0% { height: 3px; }
+  100% { height: 13px; }
+}
+
+@keyframes laserScan {
+  0% { top: 8%; opacity: 0.7; }
+  50% { top: 92%; opacity: 1; }
+  100% { top: 8%; opacity: 0.7; }
+}
+
+/* ==========================================================================
+   Lenis Smooth Scroll Engine Styles
+   ========================================================================== */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Three.js Hardware Accelerated Layer Helpers */
+.canvas-3d-container {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ==========================================================================
+   The Master Cut Collection: 3D Title & Shimmer Animations
+   ========================================================================== */
+.gold-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #d4af37 0%,
+    #fff6cc 25%,
+    #d4af37 50%,
+    #aa7c11 75%,
+    #d4af37 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldTextShimmer 4s linear infinite;
+  display: inline-block;
+}
+
+@keyframes goldTextShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.scissor-snip-icon {
+  display: inline-block;
+  color: var(--gold-primary);
+  animation: scissorSnip 2.5s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes scissorSnip {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-18deg) scale(1.15); }
+  50% { transform: rotate(12deg) scale(1.15); }
+  75% { transform: rotate(-6deg) scale(1.05); }
+}
+
+/* ==========================================================================
+   7 UNIQUE HAIRCUT CARD ENTRANCE ANIMATIONS ("Ek Jaga Hai Screen")
+   Note: At 100%, transform and filter MUST reset to 'none' so that
+   browsers render text with razor-sharp native subpixel font antialiasing (NO BLUR).
+   ========================================================================== */
+
+/* 1. Signature Precision Scissor Fade: 3D Depth Zoom & Perspective Tilt */
+.card-anim-style-1 {
+  animation: cardZoom3D 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardZoom3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) translateZ(-140px) rotateY(-12deg) scale(0.88);
+  }
+  99% {
+    opacity: 1;
+    transform: perspective(1000px) translateZ(0) rotateY(0deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 2. Royal Parted Executive Pompadour: Executive Blueprint Slide from Left */
+.card-anim-style-2 {
+  animation: cardSlideLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardSlideLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-120px) rotateZ(-3deg) scale(0.94);
+  }
+  99% {
+    opacity: 1;
+    transform: translateX(0) rotateZ(0deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 3. Textured Crop & Low Skin Taper: Elastic Gravity Drop from Top */
+.card-anim-style-3 {
+  animation: cardDropBounce 0.65s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+@keyframes cardDropBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-90px) scale(1.05);
+  }
+  75% {
+    transform: translateY(6px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 4. The Classic Gentleman Contour: 3D Book Flip / Heritage Unfold */
+.card-anim-style-4 {
+  animation: cardFlip3D 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardFlip3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(35deg) scale(0.92);
+    transform-origin: left center;
+  }
+  99% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    transform-origin: left center;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transform-origin: initial;
+  }
+}
+
+/* 5. Sculpted Quiff & Razor Perimeter: Razor Sweep from Right */
+.card-anim-style-5 {
+  animation: cardSweepRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardSweepRight {
+  0% {
+    opacity: 0;
+    transform: translateX(120px) rotateZ(3deg) scale(0.94);
+  }
+  99% {
+    opacity: 1;
+    transform: translateX(0) rotateZ(0deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 6. Textured Waves & Tapered Neckline: Liquid Wave Arc Rise */
+.card-anim-style-6 {
+  animation: cardWaveRise 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes cardWaveRise {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) translateY(90px) rotateX(18deg) scale(0.94);
+  }
+  99% {
+    opacity: 1;
+    transform: perspective(1000px) translateY(0) rotateX(0deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 7. Imperial Beard & Haircut Ensemble: Royal Imperial Burst with Aura Glow */
+.card-anim-style-7 {
+  animation: cardRoyalBurst 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardRoyalBurst {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.8);
+  }
+  65% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 30px rgba(212, 175, 55, 0.3);
+  }
+}
+
+/* Crystal-clear typography rendering on haircut cards (100% NO BLUR) */
+.haircut-reveal-card {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  isolation: isolate;
+  transform: none;
+}
+.haircut-reveal-card * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ==========================================================================
+   PINNED STAGE & PILL NAVIGATION ("Ek Jaga Hai Screen")
+   ========================================================================== */
+.pinned-stage-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.style-pills-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 0.4rem 0.8rem;
+  margin-bottom: 1.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-radius: var(--radius-full);
+  background: rgba(10, 13, 20, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  backdrop-filter: blur(12px);
+}
+.style-pills-container::-webkit-scrollbar {
+  display: none;
+}
+
+.style-pill-btn {
+  background: rgba(18, 22, 32, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  color: #94a3b8;
+  padding: 0.38rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.76rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.style-pill-btn:hover {
+  border-color: var(--gold-primary);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.style-pill-btn.active-pill {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(18, 22, 32, 0.95) 100%);
+  border: 1.5px solid var(--gold-primary);
+  color: var(--gold-primary);
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
+  transform: scale(1.04);
+}
+
+.pill-num {
+  font-size: 0.68rem;
+  opacity: 0.8;
+  font-family: monospace;
+}
+
+.haircut-stage-card-box {
+  width: 100%;
+  position: relative;
+}
+
+/* Master Cut Title Glow and Snip */
+.master-cut-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(14, 18, 26, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  padding: 0.35rem 0.95rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
+/* ==========================================================================
+   ADMIN DASHBOARD RESPONSIVE MOBILE OPTIMIZATION
+   ========================================================================== */
+.admin-modal-content {
+  padding: clamp(0.9rem, 3vw, 1.75rem) !important;
+  width: min(920px, 98%) !important;
+}
+
+.admin-nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.45rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.cms-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.cms-form-grid .grid-span-full {
+  grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+  .cms-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+  .cms-form-grid .grid-span-full {
+    grid-column: span 1 !important;
+  }
+}
+
+/* Responsive Table vs Cards (Zero Side-Scroll on Mobile) */
+.admin-desktop-table {
+  display: block;
+  overflow-x: auto;
+}
+
+.admin-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-desktop-table {
+    display: none !important;
+  }
+  .admin-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   PERFORMANCE & CONTENT-VISIBILITY OPTIMIZATIONS (CWV LCP / INP)
+   ========================================================================== */
+#services,
+#contact {
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
+}
+
+/* GPU Accelerated Composited Rendering */
+.haircut-reveal-card,
+.service-glass-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ==========================================================================
+   ULTRA-COMPACT MOBILE RESPONSIVENESS (320px - 360px)
+   Guarantees zero side-scroll, crystal-clear buttons, and full padding clearance
+   ========================================================================== */
+@media (max-width: 360px) {
+  :root {
+    --nav-height: 68px;
+  }
+
+  /* Universal zero-overflow guarantees */
+  html, body, #root {
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+
+  img, video, canvas {
+    max-width: 100% !important;
+  }
+
+  /* Global typography scale down for 320px */
+  h1, .section-title {
+    font-size: clamp(1.4rem, 6vw, 1.85rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  .section-header {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .section-tagline {
+    font-size: 0.68rem !important;
+    padding: 0.2rem 0.6rem !important;
+    margin-bottom: 0.45rem !important;
+  }
+
+  .section-subtitle {
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
+    padding: 0 0.25rem;
+  }
+
+  /* Buttons on small screens */
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem !important;
+    gap: 0.35rem !important;
+    text-align: center !important;
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Modals on 320px (AuthModal, StampCard, ServiceDetail, Admin) */
+  .modal-overlay {
+    padding: 0.35rem !important;
+  }
+
+  .modal-content {
+    padding: 1.2rem 0.75rem 1.4rem !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .input-field {
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.65rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .input-field.input-with-icons {
+    padding-left: 2.85rem !important;
+    padding-right: 2.85rem !important;
+  }
+
+  .input-label {
+    font-size: 0.78rem !important;
+  }
+
+  /* Floating Bottom Mobile Navigation Bar */
+  .mobile-bottom-nav {
+    height: 56px !important;
+    padding: 0 0.25rem !important;
+  }
+
+  .mobile-nav-item {
+    font-size: 0.62rem !important;
+    gap: 0.15rem !important;
+    padding: 0.2rem 0.35rem !important;
+  }
+
+  .mobile-nav-item svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* ==========================================================================
+   LARGE MONITORS & 4K / 8K TELEVISION DISPLAYS (1920px up to 3840px+)
+   Expands container limits, scales rem typography, and provides cinema aesthetics
+   ========================================================================== */
+@media (min-width: 1920px) {
+  .section-header {
+    margin-bottom: 3.5rem;
+  }
+
+  .section-title {
+    font-size: clamp(2.8rem, 3.2vw, 3.8rem);
+  }
+
+  .section-subtitle {
+    font-size: 1.15rem;
+    max-width: 780px;
+  }
+
+  .btn {
+    padding: 0.9rem 2rem;
+    font-size: 1.05rem;
+  }
+
+  .btn-sm {
+    padding: 0.55rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .glass-card {
+    border-radius: 22px;
+  }
+}
+
+/* 2K / QHD / Standard Living Room TV Displays (2200px - 2800px) */
+@media (min-width: 2200px) {
+  html {
+    font-size: 18px; /* Proportional rem scaling for 10-foot television viewing */
+  }
+
+  .section-header {
+    margin-bottom: 4.5rem;
+  }
+
+  .section-title {
+    font-size: clamp(3.2rem, 3vw, 4.2rem);
+  }
+
+  .section-subtitle {
+    font-size: 1.28rem;
+    max-width: 900px;
+  }
+
+  .btn {
+    padding: 1.05rem 2.4rem;
+    font-size: 1.12rem;
+  }
+
+  .modal-content {
+    max-width: 600px;
+    padding: 2.5rem;
+    border-radius: 26px;
+  }
+}
+
+/* 4K UHD & 8K Massive Televisions (3200px - 3840px+) */
+@media (min-width: 3200px) {
+  html {
+    font-size: 22px; /* Cinema-grade fluid rem-scaling */
+  }
+
+  .section-header {
+    margin-bottom: 5.5rem;
+  }
+
+  .section-title {
+    font-size: clamp(3.8rem, 2.8vw, 5.2rem);
+  }
+
+  .section-subtitle {
+    font-size: 1.45rem;
+    max-width: 1100px;
+  }
+
+  .btn {
+    padding: 1.2rem 2.8rem;
+    font-size: 1.22rem;
+  }
+
+  .modal-content {
+    max-width: 760px;
+    padding: 3rem;
+    border-radius: 32px;
+  }
+}
+
