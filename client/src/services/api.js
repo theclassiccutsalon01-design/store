@@ -1,8 +1,21 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return String(import.meta.env.VITE_API_URL).trim();
-  return '/api';
+  let url = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).trim() : '';
+
+  if (!url) {
+    return '/api';
+  }
+
+  // Remove any trailing slashes
+  url = url.replace(/\/+$/, '');
+
+  // If user provided domain without /api (e.g. https://xxx.onrender.com), auto-append /api
+  if (url.startsWith('http') && !url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+
+  return url;
 };
 
 const API = axios.create({
