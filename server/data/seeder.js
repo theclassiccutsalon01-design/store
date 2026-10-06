@@ -10,7 +10,8 @@ export const seedInitialData = async () => {
       return;
     }
     // 1. Seed or promote Super Admin User
-    const targetAdminEmail = (process.env.ADMIN_EMAIL || 'admin@classiccut.com').toLowerCase().trim();
+    const targetAdminEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+    const targetAdminPassword = process.env.ADMIN_PASSWORD || 'sooraj@01';
     let adminUser = await User.findOne({ email: targetAdminEmail });
     if (!adminUser) {
       console.log(`⚡ Seeding Super Admin account: ${targetAdminEmail}...`);
@@ -18,15 +19,25 @@ export const seedInitialData = async () => {
         name: 'Master Barber (Super Admin)',
         email: targetAdminEmail,
         phone: '+919322188848',
-        password: process.env.ADMIN_PASSWORD || 'admin12345',
+        password: targetAdminPassword,
         role: 'superadmin',
         isVerified: true,
       });
       console.log(`✅ Super Admin account created: ${targetAdminEmail}`);
-    } else if (adminUser.role !== 'superadmin') {
-      adminUser.role = 'superadmin';
-      await adminUser.save();
-      console.log(`✅ Promoted existing account to Super Admin: ${targetAdminEmail}`);
+    } else {
+      let needsSave = false;
+      if (adminUser.role !== 'superadmin') {
+        adminUser.role = 'superadmin';
+        needsSave = true;
+      }
+      if (!adminUser.isVerified) {
+        adminUser.isVerified = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await adminUser.save();
+        console.log(`✅ Promoted existing account to Super Admin: ${targetAdminEmail}`);
+      }
     }
 
     // 2. Seed Site Config if none exists
