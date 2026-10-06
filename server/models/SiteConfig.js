@@ -25,7 +25,7 @@ const siteConfigSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      default: 'sraut7285@gmail.com',
+      default: 'theclassiccutsalon01@gmail.com',
     },
     address: {
       type: String,

@@ -91,7 +91,7 @@ export const Footer = ({ onOpenAdminLogin }) => {
               🔴 Monday: CLOSED (Shop is closed on every Monday)
             </p>
             <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '0.8rem' }}>
-              📧 <a href={`mailto:${config.email || 'sraut7285@gmail.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{config.email || 'sraut7285@gmail.com'}</a>
+              📧 <a href={`mailto:${config.email || 'theclassiccutsalon01@gmail.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{config.email || 'theclassiccutsalon01@gmail.com'}</a>
             </p>
             <a
               href={`tel:${config.phone?.replace(/[^0-9+]/g, '') || '9322188848'}`}

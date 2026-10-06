@@ -8,7 +8,7 @@ export const LocationContact = () => {
   const phoneDisplay = config.phone || '+91 93221 88848';
   const phoneTel = config.phone?.replace(/[^0-9+]/g, '') || '9322188848';
   const whatsappNum = config.whatsapp?.replace(/[^0-9]/g, '') || '919322188848';
-  const emailVal = config.email || 'sraut7285@gmail.com';
+  const emailVal = config.email || 'theclassiccutsalon01@gmail.com';
   const addressVal = config.address || 'At Gevrai jategaon road Rohithal, Tq gevrai dist beed 431127 Maharashtra';
   const rawDirectionsUrl = config.mapDirectionsUrl || 'https://www.google.com/maps/dir/?api=1&destination=19.2528181,75.8555902';
   const mapDirectionsUrl = rawDirectionsUrl.startsWith('https://') ? rawDirectionsUrl : 'https://www.google.com/maps/dir/?api=1&destination=19.2528181,75.8555902';

@@ -39,7 +39,7 @@ export const seedInitialData = async () => {
         aboutStory: 'Founded on the timeless traditions of classic gentleman grooming, The Classic Cut Salon delivers unmatched scissor craftsmanship, soothing hair therapy, and precision straight-razor beard styling in an ambiance of refined sophistication.',
         phone: '+91 93221 88848',
         whatsapp: '+919322188848',
-        email: 'sraut7285@gmail.com',
+        email: 'theclassiccutsalon01@gmail.com',
         address: 'At Gevrai jategaon road Rohithal, Tq gevrai dist beed 431127 Maharashtra',
         mapDirectionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=19.2528181,75.8555902',
         mapEmbedUrl: 'https://maps.google.com/maps?q=19.2528181,75.8555902&hl=en&z=15&output=embed',
@@ -72,13 +72,17 @@ export const seedInitialData = async () => {
         configExists.defaultOfferTitle = 'Luxury Grooming Offer Coupon';
         updated = true;
       }
+      if (!configExists.email || configExists.email.includes('sraut7285')) {
+        configExists.email = 'theclassiccutsalon01@gmail.com';
+        updated = true;
+      }
       if (!configExists.defaultOfferDiscount || configExists.defaultOfferDiscount.includes('100%') || configExists.defaultOfferDiscount.includes('30% - 40%')) {
         configExists.defaultOfferDiscount = '30% to 40% OFF';
         updated = true;
       }
       if (updated) {
         await configExists.save();
-        console.log('✅ Synchronized Site CMS config with updated hours and 30% to 40% offer');
+        console.log('✅ Synchronized Site CMS config with updated email, hours, and offer');
       }
 
       // Also clean up any legacy coupons in database
