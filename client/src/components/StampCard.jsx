@@ -237,10 +237,26 @@ export const StampCard = ({
 
   const currentStamps = loyaltyData?.currentStamps ?? user?.currentStamps ?? 0;
   const stampsNeeded = 5 - currentStamps;
-  const activeCoupons = loyaltyData?.coupons?.filter((c) => !c.isRedeemed && c.status !== 'expired') || [];
-  const expiredCoupons = loyaltyData?.expiredCoupons || [];
+  
+  const now = Date.now();
+  const isCouponExpired = (c) => {
+    if (c.status === 'expired' || c.isRedeemed) return true;
+    const createdAtTime = c.createdAt ? new Date(c.createdAt).getTime() : 0;
+    if (createdAtTime && now - createdAtTime >= 2 * 60 * 1000) return true;
+    if (c.expiresAt && new Date(c.expiresAt).getTime() <= now) return true;
+    return false;
+  };
+
+  const rawActive = loyaltyData?.coupons?.filter((c) => !c.isRedeemed && c.status !== 'expired') || [];
+  const activeCoupons = rawActive.filter((c) => !isCouponExpired(c));
+  const autoExpired = rawActive.filter((c) => isCouponExpired(c)).map((c) => ({
+    ...c,
+    status: 'expired',
+    expiredReason: 'Validity duration of 2 minutes (TEST MODE) expired without salon counter redemption.',
+  }));
+  const expiredCoupons = [...(loyaltyData?.expiredCoupons || []), ...autoExpired];
   const redeemedCoupons = loyaltyData?.redeemedCoupons || [];
-  const hasExpiringSoonCoupon = activeCoupons.some((c) => c.isExpiringSoon || (c.daysRemaining !== undefined && c.daysRemaining <= 5));
+  const hasExpiringSoonCoupon = activeCoupons.some((c) => c.isExpiringSoon || (c.secondsLeft !== undefined && c.secondsLeft <= 120));
 
   return (
     <div

@@ -10,11 +10,17 @@ OfferCoupon.collection?.dropIndex('expiresAt_1').catch(() => {});
 // Helper: Soft-expire coupons that have passed their validity period (2 minutes in TEST MODE)
 export const markExpiredCoupons = async () => {
   try {
+    const now = new Date();
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
     const result = await OfferCoupon.updateMany(
       {
         status: 'active',
         isRedeemed: false,
-        expiresAt: { $lt: new Date() },
+        $or: [
+          { expiresAt: { $lt: now } },
+          { createdAt: { $lt: twoMinutesAgo } },
+        ],
       },
       {
         $set: {
