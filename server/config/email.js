@@ -123,9 +123,9 @@ export const sendOtpEmail = async (email, otp, title = 'Verification Code') => {
     }
   }
 
-  // 3. Fallback to Nodemailer SMTP with fast 4.5s timeout (Works locally and in open networks)
-  const smtpUser = process.env.EMAIL_USER;
-  const smtpPass = process.env.EMAIL_PASS;
+  // 3. Fallback to Nodemailer SMTP (Works locally and in open networks)
+  const smtpUser = process.env.EMAIL_USER ? String(process.env.EMAIL_USER).trim() : '';
+  const smtpPass = process.env.EMAIL_PASS ? String(process.env.EMAIL_PASS).replace(/\s+/g, '').trim() : '';
 
   if (!smtpUser || !smtpPass) {
     console.warn('⚠️ SMTP email credentials (EMAIL_USER / EMAIL_PASS) not configured in environment variables.');
