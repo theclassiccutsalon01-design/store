@@ -128,6 +128,8 @@ export const StampCard = ({
   useEffect(() => {
     if (isOpen && isAuthenticated) {
       fetchLoyalty();
+      const pollTimer = setInterval(fetchLoyalty, 10000); // Live 10s refresh for testing countdowns
+      return () => clearInterval(pollTimer);
     }
   }, [isOpen, isAuthenticated]);
 
@@ -960,19 +962,19 @@ export const StampCard = ({
                     )}
                     <div style={{ lineHeight: 1.45 }}>
                       <span style={{ fontWeight: 700, color: loyaltyData?.isStampDecayWarning ? '#f87171' : 'var(--gold-primary)' }}>
-                        {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Inactivity Warning:' : '⏳ 45-Day Visit Policy:'}
+                        {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Test Inactivity Alert:' : '⏳ 3-Minute Test Inactivity Policy:'}
                       </span>{' '}
                       {loyaltyData?.daysUntilStampDecay !== undefined ? (
                         <span>
                           Next visit due within{' '}
                           <strong style={{ color: '#ffffff', textDecoration: 'underline' }}>
-                            {loyaltyData.daysUntilStampDecay} day{loyaltyData.daysUntilStampDecay !== 1 ? 's' : ''}
+                            {loyaltyData.daysUntilStampDecay} min (Test Mode)
                           </strong>{' '}
-                          to keep current stamps and earn your next one! If 45 days pass without a visit, 1 stamp will expire.
+                          to keep current stamps! If 3 minutes pass without a visit, 1 stamp will expire.
                         </span>
                       ) : (
                         <span>
-                          Collect your next stamp within 45 days of your previous visit to preserve your stamp progress.
+                          Collect your next stamp within 3 minutes (Test Mode) of your previous visit to preserve your stamp progress.
                         </span>
                       )}
                     </div>
@@ -1233,7 +1235,7 @@ export const StampCard = ({
                                 })()}
                               </span>
                             </div>
-                            {coupon.isExpiringSoon || (coupon.daysRemaining !== undefined && coupon.daysRemaining <= 5) ? (
+                            {coupon.isExpiringSoon || (coupon.secondsLeft !== undefined && coupon.secondsLeft <= 120) ? (
                               <div
                                 style={{
                                   marginTop: '0.45rem',
@@ -1251,12 +1253,12 @@ export const StampCard = ({
                               >
                                 <AlertTriangle size={13} color="#ef4444" style={{ flexShrink: 0 }} />
                                 <span>
-                                  ⚠️ Expiring in {coupon.daysRemaining ?? 'few'} day{(coupon.daysRemaining ?? 2) === 1 ? '' : 's'} (on {new Date(coupon.expiresAt).toLocaleDateString()})!
+                                  {coupon.reminderMessage || `⚠️ TEST MODE: Expiring in ${coupon.secondsLeft ?? 'few'}s (at ${new Date(coupon.expiresAt).toLocaleTimeString()})!`}
                                 </span>
                               </div>
                             ) : (
                               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                                ⏱️ 35 Days Validity (Expires {new Date(coupon.expiresAt).toLocaleDateString()}{coupon.daysRemaining !== undefined ? ` • ${coupon.daysRemaining} days left` : ''})
+                                ⏱️ 2 Min Validity (Expires {new Date(coupon.expiresAt).toLocaleTimeString()})
                               </span>
                             )}
                           </div>
