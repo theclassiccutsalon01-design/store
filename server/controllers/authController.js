@@ -61,7 +61,8 @@ export const requestOtp = async (req, res) => {
       await Otp.deleteMany({ email: cleanEmail });
       return res.status(500).json({
         success: false,
-        message: 'Failed to deliver verification code to this email address. Please check your email configuration or try again.',
+        message: 'Failed to deliver verification code: ' + (emailResult.error || 'Please check your email configuration or try again.'),
+        error: emailResult.error,
       });
     }
 

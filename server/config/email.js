@@ -136,40 +136,70 @@ export const sendOtpEmail = async (email, otp, title = 'Verification Code') => {
     const smtpHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
     const isGmail = smtpHost.includes('gmail') || smtpUser.includes('@gmail.com');
 
-    const transporter = nodemailer.createTransport(
-      isGmail
-        ? {
-            service: 'gmail',
-            auth: {
-              user: smtpUser,
-              pass: smtpPass,
-            },
-            connectionTimeout: 4500,
-            greetingTimeout: 4000,
-            socketTimeout: 5000,
-          }
-        : {
-            host: smtpHost,
-            port: Number(process.env.EMAIL_PORT) || 465,
-            secure: process.env.EMAIL_SECURE === 'true' || Number(process.env.EMAIL_PORT) === 465,
-            auth: {
-              user: smtpUser,
-              pass: smtpPass,
-            },
-            connectionTimeout: 4500,
-            greetingTimeout: 4000,
-            socketTimeout: 5000,
-          }
-    );
+    let transporter;
+    if (isGmail) {
+      transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+        connectionTimeout: 12000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: Number(process.env.EMAIL_PORT) || 465,
+        secure: process.env.EMAIL_SECURE === 'true' || Number(process.env.EMAIL_PORT) === 465,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+        connectionTimeout: 12000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    }
 
-    await transporter.sendMail({
-      from: `"The Classic Cut Salon" <${smtpUser}>`,
-      to: email,
-      subject: `Your Verification Code: ${otp} - The Classic Cut Salon`,
-      html: htmlContent,
-    });
-    console.log(`✉️ Real OTP email sent successfully via SMTP to ${email}`);
-    return { success: true, mode: isGmail ? 'gmail-service' : 'smtp' };
+    try {
+      await transporter.sendMail({
+        from: `"The Classic Cut Salon" <${smtpUser}>`,
+        to: email,
+        subject: `Your Verification Code: ${otp} - The Classic Cut Salon`,
+        html: htmlContent,
+      });
+      console.log(`✉️ Real OTP email sent successfully via SMTP to ${email}`);
+      return { success: true, mode: isGmail ? 'gmail-service' : 'smtp' };
+    } catch (primaryErr) {
+      if (isGmail) {
+        console.warn('Gmail service failed, attempting port 587 STARTTLS fallback...', primaryErr.message);
+        const fallbackTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          requireTLS: true,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+          connectionTimeout: 12000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        });
+
+        await fallbackTransporter.sendMail({
+          from: `"The Classic Cut Salon" <${smtpUser}>`,
+          to: email,
+          subject: `Your Verification Code: ${otp} - The Classic Cut Salon`,
+          html: htmlContent,
+        });
+        console.log(`✉️ Real OTP email sent successfully via port 587 to ${email}`);
+        return { success: true, mode: 'gmail-port-587' };
+      }
+      throw primaryErr;
+    }
   } catch (error) {
     console.error(`Error sending OTP email to ${email}:`, error.message);
     return { success: false, error: error.message };
