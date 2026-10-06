@@ -9,8 +9,11 @@ export const LoadingScreen = ({ onComplete }) => {
   useEffect(() => {
     // Proactively wake up backend server at the exact instant loading screen appears
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '/api';
-      fetch(`${apiUrl}/health`, { mode: 'cors' }).catch(() => {});
+      const rawUrl = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).trim().replace(/\/+$/, '') : '';
+      const healthUrl = rawUrl
+        ? (rawUrl.endsWith('/api') ? `${rawUrl}/health` : `${rawUrl}/api/health`)
+        : '/api/health';
+      fetch(healthUrl, { mode: 'cors' }).catch(() => {});
     } catch (e) {}
 
     // Ultra-smooth, high-efficiency progress simulation that completes in ~850ms

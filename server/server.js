@@ -66,7 +66,7 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.status(200).json({
     status: 'online',
     app: 'The Classic Cut Salon API',
