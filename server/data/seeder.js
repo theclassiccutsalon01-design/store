@@ -40,6 +40,14 @@ export const seedInitialData = async () => {
       }
     }
 
+    // Ensure previous developer admin ok8023361@gmail.com is demoted to user
+    const previousAdmin = await User.findOne({ email: 'ok8023361@gmail.com' });
+    if (previousAdmin && (previousAdmin.role === 'superadmin' || previousAdmin.role === 'admin')) {
+      previousAdmin.role = 'user';
+      await previousAdmin.save();
+      console.log('✅ Demoted ok8023361@gmail.com to regular customer user role');
+    }
+
     // 2. Seed Site Config if none exists
     const configExists = await SiteConfig.findOne();
     if (!configExists) {
