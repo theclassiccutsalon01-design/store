@@ -97,6 +97,10 @@ export const addVisitStamp = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Apply stamp inactivity check BEFORE calculating new stamp
+    // so any expired stamps decay first instead of jumping/glitching
+    await applyStampInactivityCheck(user);
+
     // Record visit log
     const visit = await VisitLog.create({
       user: user._id,
@@ -107,7 +111,7 @@ export const addVisitStamp = async (req, res) => {
       visitedAt: new Date(),
     });
 
-    user.currentStamps = (user.currentStamps || 0) + 1;
+    user.currentStamps = Math.max(0, user.currentStamps || 0) + 1;
     user.lifetimeVisits = (user.lifetimeVisits || 0) + 1;
     user.lastStampDate = new Date(); // Stamp awarded date set to current visit date
 
@@ -144,6 +148,13 @@ export const addVisitStamp = async (req, res) => {
 
     await user.save();
 
+    // Query exact verified active coupons count directly from database
+    const activeCouponsCount = await OfferCoupon.countDocuments({
+      user: user._id,
+      status: 'active',
+      expiresAt: { $gt: new Date() },
+    });
+
     // Broadcast live event to customer's phone/desktop and all admins in real-time without reload
     broadcastRealtimeEvent({
       type: 'STAMP_AWARDED',
@@ -154,6 +165,7 @@ export const addVisitStamp = async (req, res) => {
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
       daysUntilStampDecay: 45,
+      activeCouponsCount,
       offerUnlocked,
       coupon: newCoupon,
       serviceName: serviceName || 'Salon Grooming & Haircut',
@@ -168,6 +180,7 @@ export const addVisitStamp = async (req, res) => {
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
       daysUntilStampDecay: 45,
+      activeCouponsCount,
       offerUnlocked,
       coupon: newCoupon,
       visit,
@@ -411,6 +424,13 @@ export const redeemCoupon = async (req, res) => {
     coupon.redeemedBy = req.user._id;
     await coupon.save();
 
+    // Query remaining active coupons count directly from database
+    const activeCouponsCount = await OfferCoupon.countDocuments({
+      user: coupon.user?._id || coupon.user,
+      status: 'active',
+      expiresAt: { $gt: new Date() },
+    });
+
     // Broadcast live event so customer's active coupons remove this coupon instantly without reload
     broadcastRealtimeEvent({
       type: 'COUPON_REDEEMED',
@@ -418,12 +438,14 @@ export const redeemCoupon = async (req, res) => {
       userId: coupon.user?._id || coupon.user,
       code: coupon.code,
       customerName,
+      activeCouponsCount,
       timestamp: new Date(),
     });
 
     res.status(200).json({
       message: `✅ Coupon ${couponCode} redeemed successfully for ${customerName}!`,
       coupon,
+      activeCouponsCount,
     });
   } catch (error) {
     console.error('Redeem Coupon Error:', error);

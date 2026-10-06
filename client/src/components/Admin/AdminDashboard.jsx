@@ -203,6 +203,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', msg: '' });
+  const [awardingUserId, setAwardingUserId] = useState(null);
 
   // Staff Admins State (Super Admin Only)
   const [staffList, setStaffList] = useState([]);
@@ -397,10 +398,13 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               ? {
                   ...c,
                   currentStamps: data.currentStamps,
-                  lifetimeVisits: data.lifetimeVisits || (c.lifetimeVisits || 0) + 1,
-                  activeCouponsCount: data.offerUnlocked ? (c.activeCouponsCount || 0) + 1 : c.activeCouponsCount,
+                  lifetimeVisits: data.lifetimeVisits !== undefined ? data.lifetimeVisits : (c.lifetimeVisits || 0),
+                  activeCouponsCount: data.activeCouponsCount !== undefined
+                    ? data.activeCouponsCount
+                    : (data.offerUnlocked ? Math.max(1, (c.activeCouponsCount || 0)) : c.activeCouponsCount),
                   lastServiceName: data.serviceName || c.lastServiceName,
                   lastVisitDate: data.lastStampDate || new Date().toISOString(),
+                  daysUntilStampDecay: data.daysUntilStampDecay !== undefined ? data.daysUntilStampDecay : c.daysUntilStampDecay,
                 }
               : c
           )
@@ -412,7 +416,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             c._id === data.userId
               ? {
                   ...c,
-                  activeCouponsCount: Math.max(0, (c.activeCouponsCount || 1) - 1),
+                  activeCouponsCount: data.activeCouponsCount !== undefined
+                    ? data.activeCouponsCount
+                    : Math.max(0, (c.activeCouponsCount || 1) - 1),
                 }
               : c
           )
@@ -444,12 +450,15 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   // 1. Award +1 Stamp to Customer (Fixed Position: updates in place so customer never jumps)
   const handleAwardStamp = async (customer) => {
+    if (awardingUserId) return; // Prevent double clicks while request is processing
     try {
       const serviceName = window.prompt(
         `Enter Service Name for ${customer.name} (or leave blank for standard haircut):`,
         'Gentleman Haircut & Styling'
       );
       if (serviceName === null) return; // User cancelled
+
+      setAwardingUserId(customer._id);
 
       const res = await API.post('/loyalty/add-stamp', {
         userId: customer._id,
@@ -462,25 +471,35 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
         msg: res.data.message,
       });
 
-      // Update customer in place in local state so their position remains 100% stable!
+      // Update customer in place in local state using exact verified server values!
       setCustomers((prevCustomers) =>
         prevCustomers.map((c) =>
           c._id === customer._id
             ? {
                 ...c,
                 currentStamps: res.data.currentStamps,
-                activeCouponsCount: res.data.offerUnlocked ? (c.activeCouponsCount || 0) + 1 : c.activeCouponsCount,
+                lifetimeVisits: res.data.lifetimeVisits !== undefined ? res.data.lifetimeVisits : (c.lifetimeVisits || 0),
+                lastStampDate: res.data.lastStampDate || new Date().toISOString(),
+                daysUntilStampDecay: res.data.daysUntilStampDecay !== undefined ? res.data.daysUntilStampDecay : 45,
+                activeCouponsCount: res.data.activeCouponsCount !== undefined
+                  ? res.data.activeCouponsCount
+                  : (res.data.offerUnlocked ? Math.max(1, (c.activeCouponsCount || 0)) : (c.activeCouponsCount || 0)),
                 lastServiceName: serviceName || 'Salon Grooming & Haircut',
                 lastVisitDate: new Date().toISOString(),
               }
             : c
         )
       );
+
+      // Refresh coupon records in background
+      fetchCoupons(couponFilterStatus, couponSearchQuery);
     } catch (err) {
       setFeedback({
         type: 'error',
         msg: err.response?.data?.message || 'Failed to award stamp',
       });
+    } finally {
+      setAwardingUserId(null);
     }
   };
 
@@ -1061,11 +1080,17 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                           <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
                             <button
                               onClick={() => handleAwardStamp(c)}
+                              disabled={awardingUserId === c._id}
                               className="btn btn-primary btn-sm"
                               title="Award 1 Coupon Stamp for this visit"
-                              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                              style={{
+                                padding: '0.35rem 0.75rem',
+                                fontSize: '0.75rem',
+                                opacity: awardingUserId === c._id ? 0.65 : 1,
+                                cursor: awardingUserId === c._id ? 'not-allowed' : 'pointer',
+                              }}
                             >
-                              +1 Coupon Stamp
+                              {awardingUserId === c._id ? 'Awarding...' : '+1 Coupon Stamp'}
                             </button>
                             <button
                               onClick={() => handleViewHistory(c)}
@@ -1168,10 +1193,18 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                       <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
                         <button
                           onClick={() => handleAwardStamp(c)}
+                          disabled={awardingUserId === c._id}
                           className="btn btn-primary btn-sm"
-                          style={{ flex: 1, padding: '0.45rem', fontSize: '0.75rem', justifyContent: 'center' }}
+                          style={{
+                            flex: 1,
+                            padding: '0.45rem',
+                            fontSize: '0.75rem',
+                            justifyContent: 'center',
+                            opacity: awardingUserId === c._id ? 0.65 : 1,
+                            cursor: awardingUserId === c._id ? 'not-allowed' : 'pointer',
+                          }}
                         >
-                          +1 Coupon Stamp
+                          {awardingUserId === c._id ? 'Awarding...' : '+1 Coupon Stamp'}
                         </button>
                         <button
                           onClick={() => handleViewHistory(c)}
