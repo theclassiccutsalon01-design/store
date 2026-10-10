@@ -69,13 +69,13 @@ export const seedInitialData = async () => {
         ownerTitle: 'Founder & Chief Barber',
         ownerBio: 'With over 15 years mastering British and Italian scissor sculpting and straight-razor artistry, Alex founded The Classic Cut Salon to bring authentic gentleman luxury and personalized grooming back to the modern man.',
         ownerImage: '',
-        heroVideoUrl: '/video/backgroundvideo.mp4',
+        heroVideoUrl: '/video/salon-hero-video.mp4?v=20261010',
         defaultOfferTitle: 'Luxury Grooming Offer Coupon',
         defaultOfferDiscount: '25% to 50% OFF',
       });
       console.log('✅ Default Site CMS config seeded');
     } else {
-      // Sync opening hours and default discount in existing config if still set to old defaults
+      // Sync opening hours, video, and default discount in existing config if still set to old defaults
       let updated = false;
       if (!configExists.openingHours?.weekday?.includes('Tuesday')) {
         configExists.openingHours = {
@@ -97,9 +97,13 @@ export const seedInitialData = async () => {
         configExists.defaultOfferDiscount = '25% to 50% OFF';
         updated = true;
       }
+      if (!configExists.heroVideoUrl || configExists.heroVideoUrl.includes('backgroundvideo.mp4') || configExists.heroVideoUrl.includes('video1.mp4')) {
+        configExists.heroVideoUrl = '/video/salon-hero-video.mp4?v=20261010';
+        updated = true;
+      }
       if (updated) {
         await configExists.save();
-        console.log('✅ Synchronized Site CMS config with updated email, hours, and offer');
+        console.log('✅ Synchronized Site CMS config with updated email, hours, video, and offer');
       }
 
       // Also clean up any legacy coupons in database

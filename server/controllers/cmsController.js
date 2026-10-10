@@ -15,7 +15,7 @@ const defaultCMS = {
     weekend: 'Saturday & Sunday: 8:30 AM - 10:00 PM',
     monday: 'CLOSED (Shop is closed on every Monday)',
   },
-  heroVideoUrl: '/video/backgroundvideo.mp4',
+  heroVideoUrl: '/video/salon-hero-video.mp4?v=20261010',
   defaultOfferTitle: 'Luxury Grooming Offer Coupon',
   defaultOfferDiscount: '25% to 50% OFF',
 };
