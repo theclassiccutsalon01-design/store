@@ -9,34 +9,32 @@ export const seedInitialData = async () => {
       console.log('ℹ️ MongoDB not connected yet. Seeder will run when database connection is established.');
       return;
     }
-    // 1. Seed or promote Super Admin User
+    // 1. Seed or initialize Super Admin User
     const targetAdminEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
-    const targetAdminPassword = process.env.ADMIN_PASSWORD || 'sooraj@01';
+    const targetAdminPassword = process.env.ADMIN_PASSWORD ? String(process.env.ADMIN_PASSWORD).trim() : '';
     let adminUser = await User.findOne({ email: targetAdminEmail });
     if (!adminUser) {
-      console.log(`⚡ Seeding Super Admin account: ${targetAdminEmail}...`);
-      await User.create({
-        name: 'Master Barber (Super Admin)',
-        email: targetAdminEmail,
-        phone: '+919322188848',
-        password: targetAdminPassword,
-        role: 'superadmin',
-        isVerified: true,
-      });
-      console.log(`✅ Super Admin account created: ${targetAdminEmail}`);
+      if (!targetAdminPassword) {
+        console.warn(`⚠️ [SEEDER] Super Admin account initialization skipped for ${targetAdminEmail}: ADMIN_PASSWORD environment variable is not defined.`);
+      } else if (targetAdminPassword.length < 6) {
+        console.warn(`⚠️ [SEEDER] Super Admin account initialization skipped for ${targetAdminEmail}: ADMIN_PASSWORD must be at least 6 characters.`);
+      } else {
+        console.log(`⚡ Initializing first Super Admin account: ${targetAdminEmail}...`);
+        await User.create({
+          name: 'Master Barber (Super Admin)',
+          email: targetAdminEmail,
+          phone: '+919322188848',
+          password: targetAdminPassword,
+          role: 'superadmin',
+          isVerified: true,
+        });
+        console.log(`✅ Super Admin account initialized: ${targetAdminEmail}`);
+      }
     } else {
-      let needsSave = false;
-      if (adminUser.role !== 'superadmin') {
-        adminUser.role = 'superadmin';
-        needsSave = true;
-      }
-      if (!adminUser.isVerified) {
-        adminUser.isVerified = true;
-        needsSave = true;
-      }
-      if (needsSave) {
-        await adminUser.save();
-        console.log(`✅ Promoted existing account to Super Admin: ${targetAdminEmail}`);
+      if (adminUser.role === 'superadmin') {
+        console.log(`ℹ️ [SEEDER] Super Admin account already exists: ${targetAdminEmail}`);
+      } else {
+        console.warn(`⚠️ [SEEDER] Account with email ${targetAdminEmail} already exists with role '${adminUser.role}'. Automatic privilege promotion is disabled to prevent privilege escalation. Privileged roles must be assigned through authorized administration.`);
       }
     }
 
@@ -73,7 +71,7 @@ export const seedInitialData = async () => {
         ownerImage: '',
         heroVideoUrl: '/video/backgroundvideo.mp4',
         defaultOfferTitle: 'Luxury Grooming Offer Coupon',
-        defaultOfferDiscount: '30% to 40% OFF',
+        defaultOfferDiscount: '25% to 50% OFF',
       });
       console.log('✅ Default Site CMS config seeded');
     } else {
@@ -95,8 +93,8 @@ export const seedInitialData = async () => {
         configExists.email = 'theclassiccutsalon01@gmail.com';
         updated = true;
       }
-      if (!configExists.defaultOfferDiscount || configExists.defaultOfferDiscount.includes('100%') || configExists.defaultOfferDiscount.includes('30% - 40%')) {
-        configExists.defaultOfferDiscount = '30% to 40% OFF';
+      if (!configExists.defaultOfferDiscount || configExists.defaultOfferDiscount.includes('100%') || configExists.defaultOfferDiscount.includes('30%') || configExists.defaultOfferDiscount.includes('30% - 40%')) {
+        configExists.defaultOfferDiscount = '25% to 50% OFF';
         updated = true;
       }
       if (updated) {
@@ -107,7 +105,7 @@ export const seedInitialData = async () => {
       // Also clean up any legacy coupons in database
       await OfferCoupon.updateMany(
         { $or: [{ title: /Complimentary/i }, { discountType: /100%/i }] },
-        { $set: { title: 'Luxury Grooming Offer Coupon', discountType: '30% to 40% OFF' } }
+        { $set: { title: 'Luxury Grooming Offer Coupon', discountType: '25% to 50% OFF' } }
       );
     }
 

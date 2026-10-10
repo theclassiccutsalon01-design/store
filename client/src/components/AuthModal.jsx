@@ -421,8 +421,8 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               : mode === 'forgot'
               ? 'Recover your account with a secure 6-digit email OTP'
               : mode === 'login'
-              ? 'Access your 5-Coupon Card, appointment history & 30% to 40% OFF rewards'
-              : 'Register to unlock automated visit stamps & 30% to 40% OFF grooming offers'}
+              ? 'Access your 5-Coupon Card, appointment history & 25% to 50% OFF rewards'
+              : 'Register to unlock automated visit stamps & 25% to 50% OFF grooming offers'}
           </p>
         </div>
 

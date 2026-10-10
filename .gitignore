@@ -34,3 +34,6 @@ Thumbs.db
 .vscode/
 .idea/
 
+docs/
+salon-audit/
+brain.md

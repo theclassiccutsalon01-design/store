@@ -4,6 +4,7 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import API from '../services/api';
 import confetti from 'canvas-confetti';
 import QRCode from 'qrcode';
+import { SpinWheelModal } from './SpinWheelModal';
 import {
   Scissors,
   Gift,
@@ -64,6 +65,7 @@ export const StampCard = ({
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [copiedCouponCode, setCopiedCouponCode] = useState(null);
   const [showExpiredCoupons, setShowExpiredCoupons] = useState(false);
+  const [couponToSpin, setCouponToSpin] = useState(null);
 
   const showQrCode = async (coupon) => {
     try {
@@ -71,7 +73,7 @@ export const StampCard = ({
         width: 240,
         margin: 2,
         color: {
-          dark: '#07090e',
+          dark: '#1A1A1A',
           light: '#ffffff',
         },
       });
@@ -258,7 +260,7 @@ export const StampCard = ({
           maxWidth: '540px',
           padding: '1.4rem 1.25rem 2rem 1.25rem',
           border: '1px solid var(--border-glow)',
-          background: '#12141c',
+          background: 'var(--color-charcoal, #1A1A1A)',
           maxHeight: 'min(90vh, 90dvh)',
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
@@ -334,7 +336,7 @@ export const StampCard = ({
                 Gentleman's <span className="gold-text">VIP Lounge</span>
               </h3>
               <p style={{ color: '#cbd5e1', marginBottom: '1.5rem', fontSize: '0.88rem', maxWidth: '380px', margin: '0 auto 1.5rem' }}>
-                Sign in with Google or Email to view your personal profile, track your 5-Coupon visit stamps, and redeem 30% to 40% OFF grooming rewards!
+                Sign in with Google or Email to view your personal profile, track your 5-Coupon visit stamps, and redeem 25% to 50% OFF grooming rewards!
               </p>
               <button
                 onClick={() => {
@@ -380,7 +382,7 @@ export const StampCard = ({
                     borderRadius: '10px',
                     border: 'none',
                     background: activeTab === 'profile' ? 'var(--gold-gradient)' : 'transparent',
-                    color: activeTab === 'profile' ? '#0b0c10' : '#cbd5e1',
+                    color: activeTab === 'profile' ? '#1A1A1A' : 'var(--text-secondary, #D2CFC9)',
                     fontWeight: 700,
                     fontSize: '0.85rem',
                     cursor: 'pointer',
@@ -404,7 +406,7 @@ export const StampCard = ({
                       borderRadius: '10px',
                       border: 'none',
                       background: activeTab === 'stamps' ? 'var(--gold-gradient)' : 'transparent',
-                      color: activeTab === 'stamps' ? '#0b0c10' : '#cbd5e1',
+                      color: activeTab === 'stamps' ? '#1A1A1A' : 'var(--text-secondary, #D2CFC9)',
                       fontWeight: 700,
                       fontSize: '0.85rem',
                       cursor: 'pointer',
@@ -494,7 +496,7 @@ export const StampCard = ({
                 {/* Profile Hero Card */}
                 <div
                   style={{
-                    background: 'linear-gradient(135deg, #1a1d27 0%, #0f1118 100%)',
+                    background: 'linear-gradient(135deg, #242424 0%, #1A1A1A 100%)',
                     border: '1.5px solid rgba(212, 175, 55, 0.45)',
                     borderRadius: 'var(--radius-md)',
                     padding: '1.25rem 1rem',
@@ -524,7 +526,7 @@ export const StampCard = ({
                         height: '74px',
                         borderRadius: '50%',
                         background: 'var(--gold-gradient)',
-                        color: '#0b0c10',
+                        color: '#1A1A1A',
                         fontSize: '1.9rem',
                         fontWeight: 800,
                         display: 'flex',
@@ -929,7 +931,7 @@ export const StampCard = ({
                         <span>🔔 Expiry Reminder (5 Days or Less Remaining)!</span>
                       </div>
                       <span style={{ fontSize: '0.8rem', color: '#fef3c7' }}>
-                        You have an active 30% to 40% OFF reward coupon expiring very soon! Visit the salon before the deadline and present your coupon at the counter to redeem.
+                        You have an active 25% to 50% OFF reward coupon expiring very soon! Visit the salon before the deadline and present your coupon at the counter to redeem.
                       </span>
                     </div>
                   </div>
@@ -984,7 +986,7 @@ export const StampCard = ({
                 {/* Stamp Card Presentation */}
                 <div
                   style={{
-                    background: 'linear-gradient(135deg, #1a1d27 0%, #0f1118 100%)',
+                    background: 'linear-gradient(135deg, #242424 0%, #1A1A1A 100%)',
                     border: '1.5px solid rgba(212, 175, 55, 0.45)',
                     borderRadius: 'var(--radius-md)',
                     padding: '1rem 0.85rem',
@@ -1053,7 +1055,7 @@ export const StampCard = ({
                               : isFifthSlot
                               ? '1.5px dashed var(--crimson-light)'
                               : '1.5px dashed rgba(255, 255, 255, 0.2)',
-                            color: isStamped ? '#0b0c10' : isFifthSlot ? 'var(--crimson-light)' : 'var(--text-muted)',
+                            color: isStamped ? '#1A1A1A' : isFifthSlot ? 'var(--crimson-light)' : 'var(--text-muted)',
                             boxShadow: isStamped ? '0 0 12px rgba(212, 175, 55, 0.6)' : 'none',
                             transition: 'all 0.25s ease',
                           }}
@@ -1066,7 +1068,7 @@ export const StampCard = ({
                             <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>#{slotNumber}</span>
                           )}
                           <span style={{ fontSize: '0.55rem', fontWeight: 700, marginTop: '0.1rem' }}>
-                            {isStamped ? 'DONE' : isFifthSlot ? '30-40%' : `#${slotNumber}`}
+                            {isStamped ? 'DONE' : isFifthSlot ? '25-50%' : `#${slotNumber}`}
                           </span>
                         </div>
                       );
@@ -1089,11 +1091,11 @@ export const StampCard = ({
                     <span style={{ color: '#e2e8f0' }}>
                       {stampsNeeded > 0 ? (
                         <>
-                          Just <strong style={{ color: 'var(--gold-primary)' }}>{stampsNeeded} visit{stampsNeeded > 1 ? 's' : ''}</strong> to unlock your 30% to 40% OFF reward coupon!
+                          Just <strong style={{ color: 'var(--gold-primary)' }}>{stampsNeeded} visit{stampsNeeded > 1 ? 's' : ''}</strong> to unlock your 25% to 50% OFF reward coupon!
                         </>
                       ) : (
                         <strong style={{ color: '#2ecc71' }}>
-                          🎉 5 Stamps Achieved! 30% to 40% OFF Offer Coupon generated & stamps reset!
+                          🎉 5 Stamps Achieved! 25% to 50% OFF Offer Coupon generated & stamps reset!
                         </strong>
                       )}
                     </span>
@@ -1119,7 +1121,7 @@ export const StampCard = ({
                         fontSize: '0.82rem',
                       }}
                     >
-                      No active offers yet. Reach 5 salon visits to earn your 30% to 40% OFF grooming reward!
+                      No active offers yet. Reach 5 salon visits to earn your 25% to 50% OFF grooming reward!
                     </div>
                   ) : (
                     <div
@@ -1220,8 +1222,10 @@ export const StampCard = ({
                               </p>
                               <span
                                 style={{
-                                  background: 'linear-gradient(135deg, #d4af37 0%, #b8860b 100%)',
-                                  color: '#07090e',
+                                  background: coupon.isSpun
+                                    ? 'linear-gradient(135deg, #d4af37 0%, #b8860b 100%)'
+                                    : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)',
+                                  color: '#1A1A1A',
                                   fontWeight: 800,
                                   fontSize: '0.68rem',
                                   padding: '0.12rem 0.45rem',
@@ -1229,12 +1233,48 @@ export const StampCard = ({
                                   letterSpacing: '0.02em',
                                 }}
                               >
-                                {(() => {
-                                  const rawDiscount = coupon.discountType || config.defaultOfferDiscount || '30% to 40% OFF';
-                                  return rawDiscount.includes('100%') || rawDiscount.toLowerCase().includes('free') ? '30% to 40% OFF' : rawDiscount;
-                                })()}
+                                {coupon.isSpun
+                                  ? (coupon.discountPercent ? `${coupon.discountPercent}% OFF` : coupon.discountType)
+                                  : '🎰 Spin to Reveal (25%-50% OFF)'}
                               </span>
                             </div>
+
+                            {!coupon.isSpun && (
+                              <button
+                                type="button"
+                                onClick={() => setCouponToSpin(coupon)}
+                                className="btn btn-primary"
+                                style={{
+                                  marginTop: '0.35rem',
+                                  marginBottom: '0.35rem',
+                                  width: '100%',
+                                  padding: '0.5rem 0.75rem',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 800,
+                                  letterSpacing: '0.03em',
+                                  justifyContent: 'center',
+                                  gap: '0.4rem',
+                                  boxShadow: '0 0 15px rgba(212, 175, 55, 0.4)',
+                                }}
+                              >
+                                <Sparkles size={14} />
+                                <span>🎯 Spin Discount Wheel Now</span>
+                              </button>
+                            )}
+
+                            {coupon.isSpun && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem', marginBottom: '0.25rem' }}>
+                                <span style={{ fontSize: '0.72rem', color: '#2ecc71', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  <CheckCircle size={12} />
+                                  <span>Guaranteed Discount: {coupon.discountPercent ? `${coupon.discountPercent}% OFF` : coupon.discountType}</span>
+                                </span>
+                                {coupon.spinNumber && (
+                                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                                    (Spin #{coupon.spinNumber})
+                                  </span>
+                                )}
+                              </div>
+                            )}
                             {coupon.isExpiringSoon || (coupon.daysRemaining !== undefined && coupon.daysRemaining <= 5) ? (
                               <div
                                 style={{
@@ -1505,6 +1545,16 @@ export const StampCard = ({
             </button>
           </div>
         )}
+
+        {/* Discount Spin Wheel Modal */}
+        <SpinWheelModal
+          isOpen={!!couponToSpin}
+          coupon={couponToSpin}
+          onClose={() => setCouponToSpin(null)}
+          onSpinSuccess={() => {
+            fetchLoyalty();
+          }}
+        />
       </div>
     </div>
   );

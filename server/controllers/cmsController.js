@@ -17,7 +17,49 @@ const defaultCMS = {
   },
   heroVideoUrl: '/video/backgroundvideo.mp4',
   defaultOfferTitle: 'Luxury Grooming Offer Coupon',
-  defaultOfferDiscount: '30% to 40% OFF',
+  defaultOfferDiscount: '25% to 50% OFF',
+};
+
+// SEC-007: Validate Google Maps embed URLs using URL parser, exact hostname allowlist, and permitted paths
+export const isValidGoogleMapsEmbedUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== 'string') return false;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return false;
+
+  try {
+    const parsed = new URL(trimmed);
+
+    // Protocol must strictly be https:
+    if (parsed.protocol !== 'https:') {
+      return false;
+    }
+
+    // Explicit allowlist of exact trusted Google Maps hostnames
+    const trustedHostnames = new Set([
+      'maps.google.com',
+      'www.google.com',
+      'google.com',
+      'maps.google.co.in',
+      'www.google.co.in',
+      'google.co.in',
+    ]);
+
+    const hostname = parsed.hostname.toLowerCase();
+    if (!trustedHostnames.has(hostname)) {
+      return false;
+    }
+
+    // Permitted paths for map view and embed
+    const pathname = parsed.pathname;
+    const isPermittedPath = pathname === '/maps' || pathname.startsWith('/maps/');
+    if (!isPermittedPath) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 // 1. Public: Get Active Site Configuration
@@ -37,15 +79,12 @@ export const getSiteConfig = async (req, res) => {
 // 2. Admin: Update Site Configuration
 export const updateSiteConfig = async (req, res) => {
   try {
-    let config = await SiteConfig.findOne();
-    if (!config) {
-      config = new SiteConfig();
-    }
-
     if (req.body.mapEmbedUrl !== undefined) {
       const url = String(req.body.mapEmbedUrl).trim();
-      if (url && !url.startsWith('https://')) {
-        return res.status(400).json({ message: 'Map embed URL must use secure HTTPS protocol.' });
+      if (url && !isValidGoogleMapsEmbedUrl(url)) {
+        return res.status(400).json({
+          message: 'Map embed URL must be a valid HTTPS Google Maps embed URL (e.g. https://maps.google.com/maps?... or https://www.google.com/maps/embed?...).',
+        });
       }
     }
 
@@ -54,6 +93,11 @@ export const updateSiteConfig = async (req, res) => {
       if (url && !url.startsWith('/') && !url.startsWith('https://')) {
         return res.status(400).json({ message: 'Video URL must be a relative path or secure HTTPS URL.' });
       }
+    }
+
+    let config = await SiteConfig.findOne();
+    if (!config) {
+      config = new SiteConfig();
     }
 
     const fieldsToUpdate = [
@@ -85,6 +129,6 @@ export const updateSiteConfig = async (req, res) => {
     });
   } catch (error) {
     console.error('Update Site Config Error:', error);
-    res.status(500).json({ message: 'Failed to update site configuration. ' + error.message });
+    res.status(500).json({ message: 'Failed to update site configuration.' });
   }
 };

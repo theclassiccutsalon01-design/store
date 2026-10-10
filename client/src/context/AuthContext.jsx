@@ -163,65 +163,134 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Connect to Live Real-Time Event Stream (SSE) for instant, zero-reload updates
+  // SEC-009-A: Uses one-time single-use stream tickets to avoid exposing JWTs in EventSource URLs.
+  // Manages reconnect lifecycle with bounded exponential backoff and cleanup on logout/unmount.
   useEffect(() => {
     if (!token) return;
 
-    const streamUrl = `${API.defaults.baseURL}/loyalty/live-stream?token=${encodeURIComponent(token)}`;
+    let isCancelled = false;
     let eventSource = null;
+    let reconnectTimer = null;
+    let retryAttempt = 0;
+    let ticketAbortController = null;
 
-    try {
-      eventSource = new EventSource(streamUrl);
+    const connectStream = async () => {
+      if (isCancelled) return;
 
-      eventSource.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type === 'STAMP_AWARDED') {
-            if (user && data.userId === user._id) {
-              setUser((prev) => {
-                if (!prev) return prev;
-                const updated = {
-                  ...prev,
-                  currentStamps: data.currentStamps,
-                  lifetimeVisits: data.lifetimeVisits,
-                  lastStampDate: data.lastStampDate,
-                };
-                try {
-                  localStorage.setItem('classic_cut_user', JSON.stringify(updated));
-                } catch (e) {}
-                return updated;
-              });
-            }
-          } else if (data.type === 'CUSTOMER_UPDATED') {
-            if (user && data.userId === user._id) {
-              setUser((prev) => {
-                if (!prev) return prev;
-                const updated = {
-                  ...prev,
-                  name: data.name || prev.name,
-                  phone: data.phone || prev.phone,
-                };
-                try {
-                  localStorage.setItem('classic_cut_user', JSON.stringify(updated));
-                } catch (e) {}
-                return updated;
-              });
-            }
-          }
-          // Dispatch global window event for components (StampCard, AdminDashboard)
-          window.dispatchEvent(new CustomEvent('classic_cut_realtime', { detail: data }));
-        } catch (err) {
-          // heartbeat or non-json message
+      try {
+        // 1. Obtain a fresh, single-use stream ticket via POST
+        ticketAbortController = new AbortController();
+        const res = await API.post(
+          '/loyalty/stream-ticket',
+          {},
+          { signal: ticketAbortController.signal }
+        );
+
+        if (isCancelled) return;
+        const ticket = res.data?.ticket;
+        if (!ticket) {
+          throw new Error('No stream ticket returned');
         }
-      };
 
-      eventSource.onerror = () => {
-        // SSE auto-reconnects automatically
-      };
-    } catch (err) {
-      console.warn('Realtime SSE init failed:', err);
-    }
+        // 2. Connect EventSource using the single-use ticket in URL query
+        const streamUrl = `${API.defaults.baseURL}/loyalty/live-stream?ticket=${encodeURIComponent(ticket)}`;
+        eventSource = new EventSource(streamUrl);
+
+        eventSource.onopen = () => {
+          retryAttempt = 0; // Reset retry counter on successful connection
+        };
+
+        eventSource.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data.type === 'STAMP_AWARDED') {
+              if (user && data.userId === user._id) {
+                setUser((prev) => {
+                  if (!prev) return prev;
+                  const updated = {
+                    ...prev,
+                    currentStamps: data.currentStamps,
+                    lifetimeVisits: data.lifetimeVisits,
+                    lastStampDate: data.lastStampDate,
+                  };
+                  try {
+                    localStorage.setItem('classic_cut_user', JSON.stringify(updated));
+                  } catch (e) {}
+                  return updated;
+                });
+              }
+            } else if (data.type === 'CUSTOMER_UPDATED') {
+              if (user && data.userId === user._id) {
+                setUser((prev) => {
+                  if (!prev) return prev;
+                  const updated = {
+                    ...prev,
+                    name: data.name || prev.name,
+                    phone: data.phone || prev.phone,
+                  };
+                  try {
+                    localStorage.setItem('classic_cut_user', JSON.stringify(updated));
+                  } catch (e) {}
+                  return updated;
+                });
+              }
+            }
+            // Dispatch global window event for components (StampCard, AdminDashboard)
+            window.dispatchEvent(new CustomEvent('classic_cut_realtime', { detail: data }));
+          } catch (err) {
+            // heartbeat or non-json message
+          }
+        };
+
+        eventSource.onerror = () => {
+          // Native EventSource auto-reconnects with the SAME URL (consumed ticket),
+          // which would cause repeated 401s. Explicitly close and schedule fresh ticket request.
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+
+          if (isCancelled) return;
+
+          // Bounded exponential backoff: 1s, 2s, 4s, 8s, up to 30s
+          const delay = Math.min(1000 * Math.pow(2, retryAttempt), 30000);
+          retryAttempt += 1;
+
+          if (reconnectTimer) clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(() => {
+            if (!isCancelled) {
+              connectStream();
+            }
+          }, delay);
+        };
+      } catch (err) {
+        if (isCancelled || err?.name === 'CanceledError' || err?.name === 'AbortError') {
+          return;
+        }
+
+        // Bounded exponential backoff for failed ticket request or network failure
+        const delay = Math.min(1000 * Math.pow(2, retryAttempt), 30000);
+        retryAttempt += 1;
+
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(() => {
+          if (!isCancelled) {
+            connectStream();
+          }
+        }, delay);
+      }
+    };
+
+    connectStream();
 
     return () => {
+      isCancelled = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      if (ticketAbortController) {
+        ticketAbortController.abort();
+      }
       if (eventSource) {
         eventSource.close();
       }

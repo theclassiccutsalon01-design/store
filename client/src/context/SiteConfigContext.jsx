@@ -21,7 +21,7 @@ export const SiteConfigProvider = ({ children }) => {
     },
     heroVideoUrl: '/video/backgroundvideo.mp4',
     defaultOfferTitle: 'Luxury Grooming Offer Coupon',
-    defaultOfferDiscount: '30% to 40% OFF',
+    defaultOfferDiscount: '25% to 50% OFF',
   });
   const [loading, setLoading] = useState(true);
 

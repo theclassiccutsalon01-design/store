@@ -300,8 +300,8 @@ const CouponBanner = React.memo(({ onOpenLoyalty, onOpenAdmin }) => {
       id="coupon-banner-card"
       style={{
         marginTop: '4.5rem',
-        background: '#07090e',
-        backgroundImage: 'linear-gradient(145deg, #0f131c 0%, #05070a 100%)',
+        background: 'var(--color-charcoal, #1A1A1A)',
+        backgroundImage: 'linear-gradient(145deg, #242424 0%, #1A1A1A 100%)',
         border: '2px solid var(--gold-primary)',
         borderRadius: 'var(--radius-lg)',
         padding: '2.75rem 1.5rem',
@@ -312,11 +312,11 @@ const CouponBanner = React.memo(({ onOpenLoyalty, onOpenAdmin }) => {
       }}
     >
       <Sparkles size={26} color="var(--gold-primary)" style={{ margin: '0 auto 0.6rem', display: 'block' }} />
-      <h3 style={{ fontSize: 'clamp(1.3rem, 3.8vw, 2rem)', marginBottom: '0.4rem' }}>
-        Unlock Exclusive <span className="gold-text">30% to 40% OFF</span>
+      <h3 style={{ fontSize: 'clamp(1.3rem, 3.8vw, 2rem)', marginBottom: '0.4rem', color: 'var(--color-cream, #F9F8F6)' }}>
+        Unlock Exclusive <span className="gold-text">25% to 50% OFF</span>
       </h3>
-      <p style={{ color: '#cbd5e1', maxWidth: '580px', margin: '0 auto 1.25rem', fontSize: '0.88rem' }}>
-        Collect 1 Coupon Stamp every time you visit. After 5 visits, you unlock a 30% to 40% OFF Luxury Grooming Offer!
+      <p style={{ color: 'var(--text-secondary, #D2CFC9)', maxWidth: '580px', margin: '0 auto 1.25rem', fontSize: '0.88rem' }}>
+        Collect 1 Coupon Stamp every time you visit. After 5 visits, you unlock a 25% to 50% OFF Luxury Grooming Offer!
       </p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
         {isAdmin ? (
@@ -736,7 +736,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         position: 'relative',
         padding: '5rem 0 6rem',
         minHeight: '100vh',
-        backgroundColor: '#07080b',
+        backgroundColor: 'var(--color-charcoal, #1A1A1A)',
         overflow: 'hidden',
       }}
     >
@@ -1126,7 +1126,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             overflow: 'hidden',
             border: '2px solid var(--gold-primary)',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.85)',
-            background: '#07080b',
+            background: 'var(--color-charcoal, #1A1A1A)',
             flexShrink: 0,
           }}
         >
@@ -1218,8 +1218,8 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 inset: 0,
                 zIndex: 5,
                 background: `
-                  radial-gradient(circle at center, rgba(7, 8, 11, 0.1) 0%, rgba(7, 8, 11, 0.45) 70%, #07080b 100%),
-                  linear-gradient(180deg, #07080b 0%, transparent 10%, transparent 90%, #07080b 100%)
+                  radial-gradient(circle at center, rgba(26, 26, 26, 0.1) 0%, rgba(26, 26, 26, 0.45) 70%, #1A1A1A 100%),
+                  linear-gradient(180deg, #1A1A1A 0%, transparent 10%, transparent 90%, #1A1A1A 100%)
                 `,
               }}
             />
@@ -1234,7 +1234,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 zIndex: 6,
                 fontSize: '0.72rem',
                 color: 'var(--gold-primary)',
-                background: 'rgba(10, 12, 18, 0.88)',
+                background: 'rgba(26, 26, 26, 0.88)',
                 padding: '0.25rem 0.65rem',
                 borderRadius: 'var(--radius-full)',
                 letterSpacing: '0.06em',
@@ -1870,7 +1870,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         }
         .stage-nav-btn.next-btn {
           background: var(--gold-gradient);
-          color: #07090e;
+          color: #1A1A1A;
           font-weight: 700;
           box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
         }

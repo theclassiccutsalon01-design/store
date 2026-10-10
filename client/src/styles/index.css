@@ -2,37 +2,71 @@
   --font-serif: 'Cinzel', 'Playfair Display', Georgia, serif;
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Color Palette */
-  --bg-main: #0b0c10;
-  --bg-surface: #13151b;
-  --bg-card: #181b24;
-  --bg-card-hover: #1f2330;
-  --bg-glass: rgba(19, 21, 27, 0.85);
-  --bg-glass-card: rgba(24, 27, 36, 0.7);
+  /* Official Design System Tokens */
+  --color-charcoal: #1A1A1A;        /* Primary / Dark Neutral */
+  --color-charcoal-deep: #141414;   /* Deepest tonal ground */
+  --color-charcoal-surface: #222222;/* Elevated surface */
+  --color-charcoal-card: #262626;   /* Card surface */
+  --color-charcoal-card-hover: #2e2e2e;
+  --color-charcoal-glass: rgba(26, 26, 26, 0.92);
+  --color-charcoal-glass-card: rgba(34, 34, 34, 0.82);
 
-  --gold-primary: #d4af37;
-  --gold-light: #f3e5ab;
-  --gold-dark: #aa820a;
-  --gold-gradient: linear-gradient(135deg, #f5d77f 0%, #d4af37 50%, #aa820a 100%);
+  --color-cream: #F9F8F6;           /* Secondary / Light Neutral */
+  --color-cream-muted: #E6E4DF;     /* Soft readable cream */
+  --color-cream-subtle: #D2CFC9;    /* Muted secondary text */
+  --color-neutral-muted: #9E9A92;   /* Subtle supporting text */
+
+  --color-gold: #D4AF37;            /* Primary Accent (Champagne Gold) */
+  --color-gold-light: #F3E5AB;
+  --color-gold-dark: #AA820A;
+  --color-gold-gradient: linear-gradient(135deg, #F5D77F 0%, #D4AF37 50%, #AA820A 100%);
+
+  --color-copper: #B87333;          /* Optional Secondary Accent (Muted Copper) */
+  --color-copper-light: #D48C46;
+  --color-copper-gradient: linear-gradient(135deg, #D48C46 0%, #B87333 100%);
+  --color-copper-subtle: rgba(184, 115, 51, 0.22);
+
+  /* Semantic Theme Mappings */
+  --bg-main: var(--color-charcoal);
+  --bg-surface: var(--color-charcoal-surface);
+  --bg-card: var(--color-charcoal-card);
+  --bg-card-hover: var(--color-charcoal-card-hover);
+  --bg-glass: var(--color-charcoal-glass);
+  --bg-glass-card: var(--color-charcoal-glass-card);
+
+  --gold-primary: var(--color-gold);
+  --gold-light: var(--color-gold-light);
+  --gold-dark: var(--color-gold-dark);
+  --gold-gradient: var(--color-gold-gradient);
+
+  --copper-primary: var(--color-copper);
+  --copper-subtle: var(--color-copper-subtle);
+  --copper-gradient: var(--color-copper-gradient);
 
   --crimson-primary: #c52222;
   --crimson-light: #e53e3e;
   --crimson-gradient: linear-gradient(135deg, #e53e3e 0%, #b21e1e 100%);
 
-  --text-primary: #f8f6f0;
-  --text-secondary: #9ea3b5;
-  --text-muted: #646b80;
+  --text-primary: var(--color-cream);
+  --text-secondary: var(--color-cream-subtle);
+  --text-muted: var(--color-neutral-muted);
+  --text-dark-primary: var(--color-charcoal);
+  --text-dark-secondary: #404040;
+
   --border-subtle: rgba(212, 175, 55, 0.2);
   --border-glow: rgba(212, 175, 55, 0.45);
+  --border-copper: rgba(184, 115, 51, 0.28);
+  --border-neutral: rgba(249, 248, 246, 0.12);
 
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-gold: 0 6px 20px rgba(212, 175, 55, 0.25);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-gold: 0 6px 20px rgba(212, 175, 55, 0.24);
+  --shadow-copper: 0 6px 20px rgba(184, 115, 51, 0.25);
   --shadow-crimson: 0 6px 20px rgba(197, 34, 34, 0.35);
 
   --nav-height: 72px;
@@ -95,7 +129,7 @@ body {
   background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2e3d;
+  background: #333333;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -112,6 +146,13 @@ h1, h2, h3, h4, .font-serif {
 
 .gold-text {
   background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.copper-text {
+  background: var(--copper-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
@@ -195,14 +236,28 @@ h1, h2, h3, h4, .font-serif {
 
 .btn-primary {
   background: var(--gold-gradient);
-  color: #0b0c10;
+  color: var(--color-charcoal);
   box-shadow: var(--shadow-gold);
   border-color: rgba(245, 215, 127, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.45);
+  color: #111111;
+}
+
+.btn-copper {
+  background: var(--copper-gradient);
+  color: var(--color-cream);
+  box-shadow: var(--shadow-copper);
+  border-color: rgba(212, 140, 70, 0.45);
+}
+
+.btn-copper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(184, 115, 51, 0.45);
+  color: #ffffff;
 }
 
 .btn-crimson {
@@ -224,19 +279,21 @@ h1, h2, h3, h4, .font-serif {
 }
 
 .btn-outline:hover {
-  background: rgba(212, 175, 55, 0.12);
+  background: rgba(212, 175, 55, 0.14);
   border-color: var(--gold-primary);
-  color: #ffffff;
+  color: var(--color-cream);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(249, 248, 246, 0.08);
   color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(249, 248, 246, 0.14);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(249, 248, 246, 0.16);
+  border-color: rgba(212, 175, 55, 0.35);
+  color: var(--color-cream);
 }
 
 .btn-sm {
@@ -332,8 +389,9 @@ h1, h2, h3, h4, .font-serif {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(7, 8, 11, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(18, 18, 18, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -344,13 +402,13 @@ h1, h2, h3, h4, .font-serif {
 }
 
 .modal-content {
-  background: #141720;
+  background: var(--color-charcoal);
   border: 1px solid var(--border-glow);
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 480px;
   padding: 2rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.88), 0 0 25px rgba(212, 175, 55, 0.12);
   position: relative;
   max-height: min(90vh, 90dvh);
   overflow-y: auto;
@@ -359,6 +417,7 @@ h1, h2, h3, h4, .font-serif {
   touch-action: pan-y;
   transform: translateZ(0);
   will-change: scroll-position;
+  color: var(--text-primary);
 }
 
 /* Inputs */
@@ -377,8 +436,8 @@ h1, h2, h3, h4, .font-serif {
 
 .input-field {
   width: 100%;
-  background: #0d0f15;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-charcoal-deep);
+  border: 1px solid var(--border-neutral);
   border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   color: var(--text-primary);
@@ -390,7 +449,7 @@ h1, h2, h3, h4, .font-serif {
 
 .input-field:focus {
   border-color: var(--gold-primary);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
 }
 
 .input-with-icons {
@@ -406,8 +465,9 @@ h1, h2, h3, h4, .font-serif {
   left: 0;
   right: 0;
   height: 64px;
-  background: rgba(14, 16, 22, 0.95);
+  background: rgba(26, 26, 26, 0.96);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-subtle);
   z-index: 999;
   justify-content: space-around;
@@ -1051,3 +1111,43 @@ html.lenis body {
   }
 }
 
+/* ==========================================================================
+   OFFICIAL PALETTE TOKEN UTILITY CLASSES
+   Deep Charcoal (#1A1A1A), Warm Cream (#F9F8F6), Champagne Gold (#D4AF37), Muted Copper (#B87333)
+   ========================================================================== */
+.bg-charcoal {
+  background-color: var(--color-charcoal) !important;
+}
+.bg-charcoal-deep {
+  background-color: var(--color-charcoal-deep) !important;
+}
+.bg-charcoal-surface {
+  background-color: var(--color-charcoal-surface) !important;
+}
+.bg-charcoal-card {
+  background-color: var(--color-charcoal-card) !important;
+}
+.bg-cream {
+  background-color: var(--color-cream) !important;
+}
+.text-charcoal {
+  color: var(--color-charcoal) !important;
+}
+.text-cream {
+  color: var(--color-cream) !important;
+}
+.text-gold {
+  color: var(--gold-primary) !important;
+}
+.text-copper {
+  color: var(--copper-primary) !important;
+}
+.border-gold {
+  border-color: var(--border-glow) !important;
+}
+.border-copper {
+  border-color: var(--border-copper) !important;
+}
+.border-subtle-gold {
+  border-color: var(--border-subtle) !important;
+}

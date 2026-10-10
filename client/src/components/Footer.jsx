@@ -8,12 +8,12 @@ export const Footer = ({ onOpenAdminLogin }) => {
   return (
     <footer
       style={{
-        background: '#07080b',
+        background: 'var(--color-charcoal, #1A1A1A)',
         position: 'relative',
         zIndex: 50,
-        borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+        borderTop: '1px solid rgba(212, 175, 55, 0.25)',
         padding: '4rem 0 5rem', // extra padding bottom for mobile bottom nav
-        color: 'var(--text-secondary)',
+        color: 'var(--text-secondary, #D2CFC9)',
         fontSize: '0.9rem',
       }}
     >
@@ -43,7 +43,7 @@ export const Footer = ({ onOpenAdminLogin }) => {
                   border: '2px solid var(--gold-primary)',
                 }}
               />
-              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 700, color: '#ffffff' }}>
+              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-cream, #F9F8F6)' }}>
                 {config.salonName || 'The Classic Cut Salon'}
               </span>
             </div>
@@ -54,7 +54,7 @@ export const Footer = ({ onOpenAdminLogin }) => {
 
           {/* Col 2: Navigation */}
           <div>
-            <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
+            <h4 style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
               Quick Navigation
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -78,19 +78,19 @@ export const Footer = ({ onOpenAdminLogin }) => {
 
           {/* Col 3: Hours & Contact */}
           <div>
-            <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
+            <h4 style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
               Salon Hours & Contact
             </h4>
-            <p style={{ fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.25rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #D2CFC9)', marginBottom: '0.25rem' }}>
               <strong style={{ color: 'var(--gold-primary)' }}>Tue – Fri:</strong> 9:30 AM – 9:00 PM
             </p>
-            <p style={{ fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #D2CFC9)', marginBottom: '0.35rem' }}>
               <strong style={{ color: 'var(--gold-primary)' }}>Sat – Sun:</strong> 8:30 AM – 10:00 PM
             </p>
             <p style={{ fontSize: '0.8rem', color: '#fca5a5', fontWeight: 600, marginBottom: '0.6rem' }}>
               🔴 Monday: CLOSED (Shop is closed on every Monday)
             </p>
-            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '0.8rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>
               📧 <a href={`mailto:${config.email || 'theclassiccutsalon01@gmail.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{config.email || 'theclassiccutsalon01@gmail.com'}</a>
             </p>
             <a
@@ -104,7 +104,7 @@ export const Footer = ({ onOpenAdminLogin }) => {
 
           {/* Col 4: Salon Admin Portal */}
           <div>
-            <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
+            <h4 style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--font-serif)' }}>
               Staff & Salon Admin
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>

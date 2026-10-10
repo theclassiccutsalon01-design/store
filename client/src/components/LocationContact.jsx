@@ -21,7 +21,7 @@ export const LocationContact = () => {
       id="contact"
       style={{
         padding: '5rem 0',
-        background: '#090a0e',
+        background: 'var(--color-charcoal, #1A1A1A)',
         position: 'relative',
         zIndex: 40,
       }}
@@ -53,7 +53,7 @@ export const LocationContact = () => {
             }}
           >
             <div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: '#ffffff' }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: 'var(--color-cream, #F9F8F6)' }}>
                 Salon Address & Reservations
               </h3>
 
@@ -64,7 +64,7 @@ export const LocationContact = () => {
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <span style={infoLabelStyle}>Physical Address</span>
-                  <p style={{ color: '#e2e8f0', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  <p style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '0.9rem', lineHeight: 1.5 }}>
                     {addressVal}
                   </p>
                   <a
@@ -133,7 +133,7 @@ export const LocationContact = () => {
                   <span style={infoLabelStyle}>Official Email</span>
                   <a
                     href={`mailto:${emailVal}`}
-                    style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none' }}
+                    style={{ color: 'var(--text-secondary, #D2CFC9)', fontSize: '0.9rem', textDecoration: 'none' }}
                   >
                     {emailVal}
                   </a>
@@ -148,10 +148,10 @@ export const LocationContact = () => {
                 <div style={{ flex: 1 }}>
                   <span style={infoLabelStyle}>Working Hours & Schedule</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.2rem' }}>
-                    <p style={{ color: '#e2e8f0', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
+                    <p style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
                       <strong style={{ color: 'var(--gold-primary)' }}>Tue – Fri:</strong> 9:30 AM – 9:00 PM
                     </p>
-                    <p style={{ color: '#e2e8f0', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
+                    <p style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
                       <strong style={{ color: 'var(--gold-primary)' }}>Sat – Sun:</strong> 8:30 AM – 10:00 PM
                     </p>
                     <div
@@ -394,13 +394,13 @@ export const LocationContact = () => {
         }
         .map-click-target:hover .map-directions-badge {
           background: rgba(212, 175, 55, 0.96) !important;
-          color: #0b0c10 !important;
+          color: #1A1A1A !important;
           border-color: #ffd700 !important;
           transform: translateX(-50%) translateY(-2px) scale(1.02) !important;
           box-shadow: 0 12px 35px rgba(212, 175, 55, 0.5) !important;
         }
         .map-click-target:hover .map-directions-badge svg {
-          color: #0b0c10 !important;
+          color: #1A1A1A !important;
         }
         .map-hover-scrim {
           position: absolute;

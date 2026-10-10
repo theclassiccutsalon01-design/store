@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 // Real-time Event Streaming Service using native Server-Sent Events (SSE)
 // Supports instant, zero-reload updates for stamps, coupon redemption, and profile changes
 
@@ -16,7 +18,7 @@ export const registerRealtimeClient = (req, res, user = null) => {
   });
 
   const client = {
-    id: Date.now() + Math.random().toString(36).substring(2, 9),
+    id: randomUUID(),
     res,
     userId: user?._id?.toString() || null,
     role: user?.role || 'guest',

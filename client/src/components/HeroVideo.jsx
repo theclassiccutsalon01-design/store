@@ -102,7 +102,7 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
         overflow: 'hidden',
         paddingTop: 'calc(var(--nav-height) + 1.5rem)',
         paddingBottom: '3.5rem',
-        backgroundColor: '#0b0c10',
+        backgroundColor: '#1A1A1A',
         backgroundImage: 'url(/backgrounds/imgi_394_1000_F_675403262_HTWy014WRCcGlggsScfGJP0fYNZHbOYr.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -124,22 +124,28 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          opacity: 0.95,
-          filter: 'contrast(1.06) brightness(0.98)',
+          opacity: 1,
+          filter: 'contrast(1.05) brightness(1.02)',
           zIndex: 1,
           transition: 'opacity 0.4s ease',
           pointerEvents: 'none',
         }}
-        src={(!config.heroVideoUrl || config.heroVideoUrl === '/video1.mp4' || config.heroVideoUrl === '/backgroundvideo.mp4') ? '/video/backgroundvideo.mp4' : config.heroVideoUrl}
-      />
+        src={(!config.heroVideoUrl || config.heroVideoUrl === '/video1.mp4') ? '/video/backgroundvideo.mp4' : config.heroVideoUrl}
+      >
+        <source src="/video/backgroundvideo.mp4" type="video/mp4" />
+        <source src="/video/WhatsApp%20Video%202026-10-09%20at%2018.45.32%20(2).mp4" type="video/mp4" />
+      </video>
 
       {/* 2. Matching Luxury Background Music (Optimized preload: none to save initial bandwidth) */}
       <audio
         ref={audioRef}
-        src="/music/salon-music.mp3"
+        src="/music/music.mpeg"
         loop
         preload="none"
-      />
+      >
+        <source src="/music/music.mpeg" type="audio/mpeg" />
+        <source src="/music/salon-music.mp3" type="audio/mpeg" />
+      </audio>
 
       {/* 3. Ultra-Lightweight Transparent Gradient (Guarantees Sharp Video Clarity) */}
       <div
@@ -148,16 +154,15 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
           inset: 0,
           background: `
             linear-gradient(90deg, 
-              rgba(7, 9, 13, 0.62) 0%, 
-              rgba(7, 9, 13, 0.32) 45%, 
-              rgba(7, 9, 13, 0.08) 70%, 
+              rgba(18, 18, 18, 0.45) 0%, 
+              rgba(18, 18, 18, 0.12) 50%, 
               transparent 100%
             ),
             linear-gradient(180deg, 
-              rgba(7, 9, 13, 0.65) 0%, 
-              transparent 18%, 
-              transparent 84%, 
-              #0b0c10 100%
+              rgba(18, 18, 18, 0.35) 0%, 
+              transparent 25%, 
+              transparent 85%, 
+              #1A1A1A 100%
             )
           `,
           pointerEvents: 'none',
@@ -184,8 +189,8 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.55rem',
-                background: 'rgba(14, 16, 23, 0.92)',
-                border: '1px solid rgba(212, 175, 55, 0.5)',
+                background: 'rgba(26, 26, 26, 0.92)',
+                border: '1px solid rgba(212, 175, 55, 0.45)',
                 padding: '0.4rem 1.1rem',
                 borderRadius: 'var(--radius-full)',
                 backdropFilter: 'blur(14px)',
@@ -215,7 +220,7 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                 fontWeight: 800,
                 lineHeight: 1.08,
                 marginBottom: '1rem',
-                color: '#ffffff',
+                color: 'var(--color-cream)',
                 textShadow: '0 4px 24px rgba(0, 0, 0, 0.98), 0 2px 6px rgba(0, 0, 0, 0.9)',
                 fontFamily: 'var(--font-serif)',
               }}
@@ -227,7 +232,7 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
             <p
               style={{
                 fontSize: 'clamp(1.05rem, 2.3vw, 1.35rem)',
-                color: '#f8fafc',
+                color: 'var(--color-cream-muted)',
                 lineHeight: 1.6,
                 fontWeight: 400,
                 marginBottom: '2rem',
@@ -242,10 +247,10 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
               className="hero-action-buttons"
               style={{
                 display: 'flex',
-                flexWrap: 'nowrap',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.65rem',
+                justifyContent: 'flex-start',
+                gap: '0.85rem',
+                flexWrap: 'wrap',
               }}
             >
               {isAdmin ? (
@@ -253,14 +258,17 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                   onClick={onOpenAdmin || onOpenLoyalty}
                   className="btn btn-primary hero-btn"
                   style={{
-                    fontSize: 'clamp(0.9rem, 2.5vw, 1.02rem)',
-                    padding: '0.8rem 1.75rem',
+                    fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
+                    padding: '0.85rem 1.85rem',
                     boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
                     background: 'linear-gradient(135deg, #c52222 0%, #991b1b 100%)',
                     borderColor: '#ff4d4d',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.55rem',
                   }}
                 >
-                  <ShieldCheck size={17} />
+                  <ShieldCheck size={18} />
                   <span>Admin Central Command</span>
                 </button>
               ) : (
@@ -268,12 +276,15 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                   onClick={onOpenLoyalty}
                   className="btn btn-primary hero-btn"
                   style={{
-                    fontSize: 'clamp(0.9rem, 2.5vw, 1.02rem)',
-                    padding: '0.8rem 1.75rem',
+                    fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
+                    padding: '0.85rem 1.85rem',
                     boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.55rem',
                   }}
                 >
-                  <Scissors size={17} />
+                  <Scissors size={18} />
                   <span>Check My 5-Coupon Card</span>
                 </button>
               )}
@@ -282,15 +293,18 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                 onClick={onScrollToExperience}
                 className="btn btn-outline hero-btn"
                 style={{
-                  fontSize: 'clamp(0.88rem, 2.5vw, 1rem)',
-                  padding: '0.8rem 1.6rem',
-                  background: 'rgba(15, 17, 24, 0.75)',
+                  fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
+                  padding: '0.85rem 1.75rem',
+                  background: 'rgba(26, 26, 26, 0.85)',
                   backdropFilter: 'blur(10px)',
                   borderColor: 'rgba(212, 175, 55, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
                 }}
               >
                 <span>Barber Journey</span>
-                <ChevronDown size={17} />
+                <ChevronDown size={18} />
               </button>
             </div>
           </div>
@@ -311,10 +325,10 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
             gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
             gap: '1rem',
             marginTop: '3rem',
-            background: 'rgba(15, 17, 24, 0.88)',
+            background: 'rgba(26, 26, 26, 0.92)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
             borderRadius: 'var(--radius-md)',
             padding: '1.2rem',
             boxShadow: '0 12px 32px rgba(0, 0, 0, 0.75)',
@@ -345,8 +359,8 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
           right: '1.25rem',
           zIndex: 25,
           background: isPlayingMusic
-            ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(15, 17, 24, 0.95) 100%)'
-            : 'rgba(15, 17, 24, 0.88)',
+            ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(26, 26, 26, 0.95) 100%)'
+            : 'rgba(26, 26, 26, 0.9)',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           border: isPlayingMusic
@@ -431,6 +445,16 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
 
         .hero-text-col {
           text-align: left;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .hero-action-buttons {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 0.85rem;
         }
 
         .hero-3d-col {
@@ -451,6 +475,10 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
             display: flex;
             flex-direction: column;
             align-items: center;
+          }
+
+          .hero-action-buttons {
+            justify-content: center !important;
           }
 
           .hero-btn {
@@ -576,7 +604,7 @@ const statNumberStyle = {
 
 const statLabelStyle = {
   fontSize: '0.7rem',
-  color: '#cbd5e1',
+  color: 'var(--color-cream-subtle)',
   letterSpacing: '0.02em',
   marginTop: '0.15rem',
 };

@@ -159,7 +159,7 @@ const PaginationControl = ({
                 fontWeight: isActive ? 800 : 500,
                 border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
                 background: isActive ? 'var(--gold-gradient)' : 'rgba(255, 255, 255, 0.04)',
-                color: isActive ? '#0b0c10' : '#cbd5e1',
+                color: isActive ? '#1A1A1A' : 'var(--text-secondary, #D2CFC9)',
                 boxShadow: isActive ? '0 0 10px rgba(212, 175, 55, 0.35)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -200,6 +200,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   const [activeTab, setActiveTab] = useState('stamps'); // 'stamps' | 'cms' | 'recovery' | 'redeem' | 'staff'
   const [customers, setCustomers] = useState([]);
+  const [totalCustomersCount, setTotalCustomersCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', msg: '' });
@@ -212,9 +213,16 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [newAdminForm, setNewAdminForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
-  // Visit history modal
+  // Visit history modal (Feature 3)
   const [selectedCustomerHistory, setSelectedCustomerHistory] = useState(null);
   const [historyVisits, setHistoryVisits] = useState([]);
+
+  // Service-Based Stamp Issuance Modal State (Feature 2)
+  const [customerForStamp, setCustomerForStamp] = useState(null);
+  const [selectedServiceType, setSelectedServiceType] = useState('Haircut Only');
+  const [customServiceName, setCustomServiceName] = useState('');
+  const [stampNotes, setStampNotes] = useState('');
+  const [awardStampLoading, setAwardStampLoading] = useState(false);
 
   // Coupon redemption code & QR scanner state
   const [redeemCode, setRedeemCode] = useState('');
@@ -239,21 +247,18 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [editForm, setEditForm] = useState({ name: '', phone: '' });
   const [editLoading, setEditLoading] = useState(false);
 
-  // Customer Management Pagination
+  // Customer Management Pagination (Server-Side)
   const [customerPage, setCustomerPage] = useState(1);
-  const [customerPageSize, setCustomerPageSize] = useState(5);
+  const [customerPageSize, setCustomerPageSize] = useState(10);
 
   // Deleted Accounts Pagination
   const [deletedPage, setDeletedPage] = useState(1);
   const [deletedPageSize, setDeletedPageSize] = useState(5);
 
-  // Paginated active customers calculation
-  const totalCustomerPages = Math.ceil(customers.length / customerPageSize) || 1;
+  // Paginated active customers: server returns the current slice in `customers`
+  const totalCustomerPages = Math.ceil(totalCustomersCount / customerPageSize) || 1;
   const validCustomerPage = Math.min(Math.max(1, customerPage), totalCustomerPages);
-  const paginatedCustomers = customers.slice(
-    (validCustomerPage - 1) * customerPageSize,
-    validCustomerPage * customerPageSize
-  );
+  const paginatedCustomers = customers;
 
   // Paginated deleted customers calculation
   const totalDeletedPages = Math.ceil(deletedCustomers.length / deletedPageSize) || 1;
@@ -292,16 +297,86 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     }
   }, [config]);
 
-  // Load Active Customers
-  const fetchCustomers = async (search = '') => {
+  // Request sequence and cancellation refs for customer pagination (SEC-005 race condition guard)
+  const customerRequestSeqRef = useRef(0);
+  const customerAbortControllerRef = useRef(null);
+
+  // Clean up any in-flight customer query on unmount
+  useEffect(() => {
+    return () => {
+      if (customerAbortControllerRef.current) {
+        try {
+          customerAbortControllerRef.current.abort();
+        } catch (e) {}
+      }
+    };
+  }, []);
+
+  // Load Active Customers with Server-Side Pagination & Search
+  const fetchCustomers = async (
+    search = searchQuery,
+    page = customerPage,
+    limit = customerPageSize
+  ) => {
+    // Increment sequence ID: any older responses will have a lower ID and be safely discarded
+    const requestId = ++customerRequestSeqRef.current;
+
+    // Abort previous in-flight request if one exists
+    if (customerAbortControllerRef.current) {
+      try {
+        customerAbortControllerRef.current.abort();
+      } catch (e) {}
+    }
+    const abortController = new AbortController();
+    customerAbortControllerRef.current = abortController;
+
     setLoading(true);
     try {
-      const res = await API.get(`/loyalty/customers?search=${encodeURIComponent(search)}`);
-      setCustomers(res.data);
+      const res = await API.get('/loyalty/customers', {
+        params: {
+          search: String(search || '').trim(),
+          page,
+          limit,
+        },
+        signal: abortController.signal,
+      });
+
+      // Stale-response guard: discard response if a newer request has been initiated
+      if (requestId !== customerRequestSeqRef.current) {
+        return;
+      }
+
+      if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+        const { customers: serverCustomers = [], total = 0, totalPages = 1 } = res.data;
+        setTotalCustomersCount(total);
+
+        // Handle page out-of-range after customer deletion on the last page
+        if (serverCustomers.length === 0 && total > 0 && page > totalPages) {
+          setCustomerPage(totalPages);
+          return fetchCustomers(search, totalPages, limit);
+        }
+
+        setCustomers(serverCustomers);
+      } else if (Array.isArray(res.data)) {
+        setCustomers(res.data);
+        const headerCount = Number(res.headers?.['x-total-count']);
+        setTotalCustomersCount(Number.isInteger(headerCount) ? headerCount : res.data.length);
+      }
     } catch (err) {
+      // Ignore aborted request errors
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.name === 'AbortError') {
+        return;
+      }
+      // Discard errors from superseded requests
+      if (requestId !== customerRequestSeqRef.current) {
+        return;
+      }
       console.error('Failed to load customers:', err);
     } finally {
-      setLoading(false);
+      // Guard loading state: only clear loading if this request is still the active one
+      if (requestId === customerRequestSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -360,7 +435,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
       setExtendMsg(res.data.message || 'Validity extended successfully!');
       setFeedback({ type: 'success', msg: res.data.message });
       await fetchCoupons(couponFilterStatus, couponSearchQuery);
-      await fetchCustomers(searchQuery);
+      await fetchCustomers(searchQuery, customerPage, customerPageSize);
       setTimeout(() => {
         setCouponToExtend(null);
         setExtendMsg('');
@@ -375,14 +450,14 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen && isAdmin) {
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQuery, customerPage, customerPageSize);
       fetchDeletedCustomers();
       fetchCoupons(couponFilterStatus, couponSearchQuery);
       if (isSuperAdmin) {
         fetchStaffList();
       }
     }
-  }, [isOpen, isAdmin, isSuperAdmin, searchQuery, couponFilterStatus, couponSearchQuery]);
+  }, [isOpen, isAdmin, isSuperAdmin, couponFilterStatus, couponSearchQuery]);
 
   // Zero-Reload Real-time Updates Listener
   useEffect(() => {
@@ -448,22 +523,31 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   if (!isOpen || !isAdmin) return null;
 
-  // 1. Award +1 Stamp to Customer (Fixed Position: updates in place so customer never jumps)
-  const handleAwardStamp = async (customer) => {
-    if (awardingUserId) return; // Prevent double clicks while request is processing
+  // 1. Service Selection Modal Handler (Feature 2)
+  const handleAwardStamp = (customer) => {
+    setCustomerForStamp(customer);
+    setSelectedServiceType('Haircut Only');
+    setCustomServiceName('');
+    setStampNotes('');
+  };
+
+  const submitAwardStamp = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!customerForStamp || awardStampLoading) return;
+    if (!selectedServiceType) {
+      alert('Please select a service type.');
+      return;
+    }
+
+    setAwardStampLoading(true);
+    setAwardingUserId(customerForStamp._id);
+
     try {
-      const serviceName = window.prompt(
-        `Enter Service Name for ${customer.name} (or leave blank for standard haircut):`,
-        'Gentleman Haircut & Styling'
-      );
-      if (serviceName === null) return; // User cancelled
-
-      setAwardingUserId(customer._id);
-
       const res = await API.post('/loyalty/add-stamp', {
-        userId: customer._id,
-        serviceName: serviceName || 'Salon Grooming & Haircut',
-        notes: 'Awarded at salon counter by admin',
+        userId: customerForStamp._id,
+        serviceType: selectedServiceType,
+        serviceName: customServiceName.trim() || selectedServiceType,
+        notes: stampNotes.trim() || 'Awarded at salon counter by admin',
       });
 
       setFeedback({
@@ -474,7 +558,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
       // Update customer in place in local state using exact verified server values!
       setCustomers((prevCustomers) =>
         prevCustomers.map((c) =>
-          c._id === customer._id
+          c._id === customerForStamp._id
             ? {
                 ...c,
                 currentStamps: res.data.currentStamps,
@@ -484,14 +568,14 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                 activeCouponsCount: res.data.activeCouponsCount !== undefined
                   ? res.data.activeCouponsCount
                   : (res.data.offerUnlocked ? Math.max(1, (c.activeCouponsCount || 0)) : (c.activeCouponsCount || 0)),
-                lastServiceName: serviceName || 'Salon Grooming & Haircut',
+                lastServiceName: customServiceName.trim() || selectedServiceType,
                 lastVisitDate: new Date().toISOString(),
               }
             : c
         )
       );
 
-      // Refresh coupon records in background
+      setCustomerForStamp(null);
       fetchCoupons(couponFilterStatus, couponSearchQuery);
     } catch (err) {
       setFeedback({
@@ -499,18 +583,25 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
         msg: err.response?.data?.message || 'Failed to award stamp',
       });
     } finally {
+      setAwardStampLoading(false);
       setAwardingUserId(null);
     }
   };
 
-  // 2. View Customer Visit History
+  // 2. View Customer Visit & Stamp History with Admin Authorization (Feature 3)
   const handleViewHistory = async (customer) => {
     try {
-      const res = await API.get(`/loyalty/visits/${customer._id}`);
-      setSelectedCustomerHistory(customer);
-      setHistoryVisits(res.data);
+      const res = await API.get(`/loyalty/customer-history/${customer._id}`);
+      setSelectedCustomerHistory(res.data.customer || customer);
+      setHistoryVisits(res.data.history || []);
     } catch (err) {
-      alert('Could not fetch visit history');
+      try {
+        const fallbackRes = await API.get(`/loyalty/visits/${customer._id}`);
+        setSelectedCustomerHistory(customer);
+        setHistoryVisits(fallbackRes.data || []);
+      } catch (e) {
+        alert('Could not fetch visit history');
+      }
     }
   };
 
@@ -524,7 +615,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
       setFeedback({ type: 'success', msg: res.data.message });
       setRedeemCode('');
       // Refresh customer list to update coupon counts
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQuery, customerPage, customerPageSize);
     } catch (err) {
       setFeedback({
         type: 'error',
@@ -660,7 +751,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
       const res = await API.delete(`/loyalty/customers/${customerToDelete._id}`);
       setFeedback({ type: 'success', msg: res.data.message });
       setCustomerToDelete(null);
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQuery, customerPage, customerPageSize);
       fetchDeletedCustomers();
     } catch (err) {
       setFeedback({
@@ -677,7 +768,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     try {
       const res = await API.post(`/loyalty/customers/${id}/restore`);
       setFeedback({ type: 'success', msg: res.data.message });
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQuery, customerPage, customerPageSize);
       fetchDeletedCustomers();
     } catch (err) {
       setFeedback({
@@ -731,7 +822,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
       });
       setFeedback({ type: 'success', msg: res.data.message });
       setCustomerToEdit(null);
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQuery, customerPage, customerPageSize);
     } catch (err) {
       setFeedback({
         type: 'error',
@@ -806,7 +897,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
           display: 'flex',
           flexDirection: 'column',
           padding: 'clamp(0.85rem, 3vw, 1.75rem)',
-          background: '#11131a',
+          background: 'var(--color-charcoal, #1A1A1A)',
           border: '1px solid var(--border-glow)',
           overscrollBehavior: 'contain',
         }}
@@ -888,7 +979,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             style={{ justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', height: 'auto', padding: '0.5rem 0.5rem' }}
           >
             <Users size={14} />
-            <span style={{ fontSize: '0.78rem' }}>Customers ({customers.length})</span>
+            <span style={{ fontSize: '0.78rem' }}>Customers ({totalCustomersCount})</span>
           </button>
 
           <button
@@ -939,7 +1030,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                 height: 'auto',
                 padding: '0.5rem 0.5rem',
                 ...(activeTab === 'staff'
-                  ? { background: 'linear-gradient(135deg, #d4af37 0%, #aa820a 100%)', color: '#0b0c10', fontWeight: 700 }
+                  ? { background: 'linear-gradient(135deg, #d4af37 0%, #aa820a 100%)', color: '#1A1A1A', fontWeight: 700 }
                   : {}),
               }}
             >
@@ -975,9 +1066,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     placeholder="Search by customer name, mobile or email..."
                     value={searchQuery}
                     onChange={(e) => {
-                      setSearchQuery(e.target.value);
+                      const val = e.target.value;
+                      setSearchQuery(val);
                       setCustomerPage(1);
-                      fetchCustomers(e.target.value);
+                      fetchCustomers(val, 1, customerPageSize);
                     }}
                     className="input-field"
                     style={{ paddingLeft: '2.5rem' }}
@@ -1243,13 +1335,20 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                 )}
               </div>
 
-              {/* Customer Pagination Controls */}
+              {/* Customer Pagination Controls (Server-Side) */}
               <PaginationControl
                 currentPage={validCustomerPage}
-                totalItems={customers.length}
+                totalItems={totalCustomersCount}
                 pageSize={customerPageSize}
-                onPageChange={setCustomerPage}
-                onPageSizeChange={setCustomerPageSize}
+                onPageChange={(newPage) => {
+                  setCustomerPage(newPage);
+                  fetchCustomers(searchQuery, newPage, customerPageSize);
+                }}
+                onPageSizeChange={(newSize) => {
+                  setCustomerPageSize(newSize);
+                  setCustomerPage(1);
+                  fetchCustomers(searchQuery, 1, newSize);
+                }}
                 itemLabel="customers"
               />
             </div>
@@ -1283,7 +1382,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                 Counter Offer Coupon Redemption
               </h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                Scan the customer's QR code using your camera or enter their 6-character coupon code below to verify and redeem their 30% to 40% OFF grooming reward coupon.
+                Scan the customer's QR code using your camera or enter their 6-character coupon code below to verify and redeem their 25% to 50% OFF grooming reward coupon.
               </p>
 
               {/* QR Scanner Controls */}
@@ -1358,7 +1457,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                         overflow: 'hidden',
                         border: '2px solid var(--gold-primary)',
                         boxShadow: '0 0 25px rgba(212, 175, 55, 0.4)',
-                        background: '#07090e',
+                        background: 'var(--color-charcoal, #1A1A1A)',
                       }}
                     >
                       <video
@@ -2820,13 +2919,15 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
           document.body
         )}
 
-        {/* Customer Visit History Submodal */}
+        {/* ========================================================================= */}
+        {/* MODAL: CUSTOMER SERVICE & STAMP HISTORY (FEATURE 3 AUDIT TRAIL) */}
+        {/* ========================================================================= */}
         {selectedCustomerHistory && typeof document !== 'undefined' && createPortal(
           <div
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0, 0, 0, 0.85)',
+              background: 'rgba(0, 0, 0, 0.88)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               zIndex: 999999,
@@ -2841,10 +2942,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             <div
               style={{
                 background: '#14171f',
-                border: '1px solid rgba(212, 175, 55, 0.4)',
-                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(212, 175, 55, 0.2)',
+                border: '1.5px solid rgba(212, 175, 55, 0.5)',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25)',
                 borderRadius: 'var(--radius-lg)',
-                maxWidth: '560px',
+                maxWidth: '680px',
                 width: '100%',
                 maxHeight: '90vh',
                 display: 'flex',
@@ -2856,13 +2957,20 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '0.75rem', borderBottom: '1px solid rgba(212, 175, 55, 0.25)', paddingBottom: '0.85rem' }}>
                 <div style={{ minWidth: 0 }}>
-                  <h4 style={{ fontSize: 'clamp(1.1rem, 3.6vw, 1.3rem)', color: '#ffffff', margin: 0, fontWeight: 700 }}>
-                    Visit Logs: {selectedCustomerHistory.name}
-                  </h4>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--gold-primary)', margin: '0.2rem 0 0 0' }}>
-                    Active Stamps: {selectedCustomerHistory.currentStamps}/5 • Lifetime: {selectedCustomerHistory.lifetimeVisits}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <h4 style={{ fontSize: 'clamp(1.1rem, 3.6vw, 1.3rem)', color: '#ffffff', margin: 0, fontWeight: 700 }}>
+                      Customer Audit: {selectedCustomerHistory.name}
+                    </h4>
+                    <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--gold-primary)', background: 'rgba(212, 175, 55, 0.12)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                      ID: {selectedCustomerHistory._id}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#cbd5e1', margin: '0.35rem 0 0 0', display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+                    <span>Active Stamps: <strong style={{ color: 'var(--gold-primary)' }}>{selectedCustomerHistory.currentStamps}/5</strong></span>
+                    <span>Lifetime Visits: <strong style={{ color: '#ffffff' }}>{selectedCustomerHistory.lifetimeVisits || 0}</strong></span>
+                    <span>Spins Completed: <strong style={{ color: '#38bdf8' }}>{selectedCustomerHistory.spinCount || 0}</strong></span>
                   </p>
                 </div>
                 <button
@@ -2886,43 +2994,393 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingRight: '0.25rem' }}>
                 {historyVisits.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                    No visit history recorded yet for this customer.
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                    No service or stamp history recorded yet for this customer.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                    {historyVisits.map((v) => (
-                      <div
-                        key={v._id}
-                        style={{
-                          padding: '0.85rem 1rem',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          borderRadius: 'var(--radius-sm)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#ffffff' }}>{v.serviceName}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{v.notes}</div>
-                        </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <div style={{ color: 'var(--gold-primary)', fontWeight: 500, fontSize: '0.85rem' }}>
-                            {new Date(v.visitedAt).toLocaleDateString()}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {historyVisits.map((v) => {
+                      const isExpired = v.status === 'expired' || (v.status === 'active' && v.expiresAt && new Date(v.expiresAt) <= new Date());
+                      const isRedeemed = v.status === 'redeemed';
+                      const isActive = v.status === 'active' && !isExpired;
+
+                      return (
+                        <div
+                          key={v._id}
+                          style={{
+                            padding: '0.9rem 1.1rem',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: `1px solid ${isActive ? 'rgba(46, 204, 113, 0.35)' : isRedeemed ? 'rgba(212, 175, 55, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                            borderRadius: 'var(--radius-sm)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          {/* Row 1: Badges & Status */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span
+                                style={{
+                                  background: v.serviceType === 'Haircut Only' ? 'rgba(59, 130, 246, 0.18)' : v.serviceType === 'Beard' ? 'rgba(245, 158, 11, 0.18)' : 'rgba(168, 85, 247, 0.18)',
+                                  border: `1px solid ${v.serviceType === 'Haircut Only' ? '#60a5fa' : v.serviceType === 'Beard' ? '#fbbf24' : '#c084fc'}`,
+                                  color: v.serviceType === 'Haircut Only' ? '#93c5fd' : v.serviceType === 'Beard' ? '#fde047' : '#e9d5ff',
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  padding: '0.18rem 0.55rem',
+                                  borderRadius: '6px',
+                                }}
+                              >
+                                {v.serviceType || 'Legacy Stamp'}
+                              </span>
+                              <strong style={{ fontSize: '0.86rem', color: '#ffffff' }}>
+                                {v.serviceName}
+                              </strong>
+                            </div>
+
+                            <span
+                              style={{
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                padding: '0.18rem 0.6rem',
+                                borderRadius: '4px',
+                                letterSpacing: '0.04em',
+                                background: isActive ? 'rgba(46, 204, 113, 0.15)' : isRedeemed ? 'rgba(212, 175, 55, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                color: isActive ? '#4ade80' : isRedeemed ? 'var(--gold-primary)' : '#f87171',
+                                border: `1px solid ${isActive ? '#22c55e' : isRedeemed ? 'var(--gold-primary)' : '#ef4444'}`,
+                              }}
+                            >
+                              {isActive ? '● ACTIVE' : isRedeemed ? '★ REDEEMED' : '✕ EXPIRED'}
+                            </span>
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            {new Date(v.visitedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                          {/* Row 2: Metadata Grid */}
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                              gap: '0.4rem',
+                              fontSize: '0.74rem',
+                              color: '#cbd5e1',
+                              background: 'rgba(0, 0, 0, 0.25)',
+                              padding: '0.5rem 0.75rem',
+                              borderRadius: '6px',
+                            }}
+                          >
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Issued At: </span>
+                              <strong>{new Date(v.visitedAt).toLocaleString()}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Issuing Admin: </span>
+                              <strong>{v.admin?.name || 'Authorized Staff'} {v.admin?.email ? `(${v.admin.email})` : ''}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Expiry Date: </span>
+                              <strong style={{ color: isExpired ? '#fca5a5' : '#86efac' }}>
+                                {v.expiresAt ? new Date(v.expiresAt).toLocaleDateString() : 'Legacy 45-day cycle'}
+                              </strong>
+                            </div>
                           </div>
+
+                          {/* Row 3: Notes & Redemption Details */}
+                          {v.notes && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              Notes: {v.notes}
+                            </div>
+                          )}
+
+                          {isRedeemed && (
+                            <div
+                              style={{
+                                background: 'rgba(212, 175, 55, 0.1)',
+                                border: '1px solid rgba(212, 175, 55, 0.3)',
+                                borderRadius: '4px',
+                                padding: '0.35rem 0.65rem',
+                                fontSize: '0.72rem',
+                                color: '#fef08a',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                              }}
+                            >
+                              <span>🎁 Redeemed on {v.redeemedAt ? new Date(v.redeemedAt).toLocaleDateString() : 'completion'} for Reward Coupon:</span>
+                              <strong style={{ fontFamily: 'monospace', color: 'var(--gold-primary)' }}>
+                                {v.redeemedCoupon?.code || 'Reward Cycle'}
+                              </strong>
+                              {v.redeemedCoupon?.discountPercent && (
+                                <span>({v.redeemedCoupon.discountPercent}% OFF)</span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* ========================================================================= */}
+        {/* MODAL: SERVICE-BASED STAMP ISSUANCE DIALOG (FEATURE 2) */}
+        {/* ========================================================================= */}
+        {customerForStamp && typeof document !== 'undefined' && createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.88)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 999999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 'clamp(0.5rem, 3vw, 1.25rem)',
+              boxSizing: 'border-box',
+            }}
+            onClick={() => !awardStampLoading && setCustomerForStamp(null)}
+          >
+            <div
+              style={{
+                background: '#14171f',
+                border: '1.5px solid var(--gold-primary)',
+                boxShadow: '0 25px 65px rgba(0, 0, 0, 0.95), 0 0 40px rgba(212, 175, 55, 0.3)',
+                borderRadius: 'var(--radius-lg)',
+                maxWidth: '520px',
+                width: '100%',
+                maxHeight: '92vh',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                padding: 'clamp(1.1rem, 4vw, 1.75rem)',
+                boxSizing: 'border-box',
+                color: '#ffffff',
+                position: 'relative',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: 'rgba(212, 175, 55, 0.15)',
+                      border: '1px solid rgba(212, 175, 55, 0.35)',
+                      color: 'var(--gold-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Scissors size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                      Award Visit Stamp
+                    </h3>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--gold-primary)', margin: '0.15rem 0 0 0' }}>
+                      Required Service Selection & Authoritative Expiry
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={awardStampLoading}
+                  onClick={() => setCustomerForStamp(null)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Customer info card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '10px',
+                  padding: '0.75rem 1rem',
+                  marginBottom: '1.25rem',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Customer:</span>
+                  <strong style={{ color: '#ffffff' }}>{customerForStamp.name}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Current Progress:</span>
+                  <strong style={{ color: 'var(--gold-primary)' }}>{customerForStamp.currentStamps}/5 Stamps</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Customer ID:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#94a3b8', fontSize: '0.72rem' }}>{customerForStamp._id}</span>
+                </div>
+              </div>
+
+              {/* Service Selection Form */}
+              <form onSubmit={submitAwardStamp} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                <div>
+                  <label className="input-label" style={{ marginBottom: '0.6rem', display: 'block', fontWeight: 700 }}>
+                    Select Service Type * (Mandatory)
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {[
+                      {
+                        type: 'Beard',
+                        days: 20,
+                        title: 'Beard',
+                        desc: 'Precision Beard Grooming & Styling',
+                        badge: 'Expires in 20 Days',
+                      },
+                      {
+                        type: 'Haircut + Beard',
+                        days: 20,
+                        title: 'Haircut + Beard',
+                        desc: 'Complete Haircut & Beard Royal Service',
+                        badge: 'Expires in 20 Days',
+                      },
+                      {
+                        type: 'Haircut Only',
+                        days: 45,
+                        title: 'Haircut Only',
+                        desc: 'Gentleman Classic Haircut Only',
+                        badge: 'Expires in 45 Days',
+                      },
+                    ].map((opt) => {
+                      const isSelected = selectedServiceType === opt.type;
+                      return (
+                        <div
+                          key={opt.type}
+                          onClick={() => setSelectedServiceType(opt.type)}
+                          style={{
+                            padding: '0.75rem 0.9rem',
+                            borderRadius: '10px',
+                            border: `1.5px solid ${isSelected ? 'var(--gold-primary)' : 'rgba(255, 255, 255, 0.1)'}`,
+                            background: isSelected ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <input
+                                type="radio"
+                                name="serviceTypeSelection"
+                                checked={isSelected}
+                                onChange={() => setSelectedServiceType(opt.type)}
+                                style={{ accentColor: 'var(--gold-primary)', cursor: 'pointer' }}
+                              />
+                              <strong style={{ fontSize: '0.9rem', color: isSelected ? '#ffffff' : '#cbd5e1' }}>
+                                {opt.title}
+                              </strong>
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '1.4rem', marginTop: '0.15rem' }}>
+                              {opt.desc}
+                            </div>
+                          </div>
+
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '4px',
+                              background: opt.days === 20 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                              color: opt.days === 20 ? '#fbbf24' : '#60a5fa',
+                              border: `1px solid ${opt.days === 20 ? '#f59e0b' : '#3b82f6'}`,
+                            }}
+                          >
+                            {opt.badge}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Live Expiry Preview Card */}
+                <div
+                  style={{
+                    background: 'rgba(46, 204, 113, 0.08)',
+                    border: '1.5px solid rgba(46, 204, 113, 0.35)',
+                    borderRadius: '10px',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.8rem',
+                    color: '#86efac',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, marginBottom: '0.2rem', color: '#4ade80' }}>
+                    📅 Authoritative Expiry Preview:
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#ffffff' }}>
+                    {(() => {
+                      const days = selectedServiceType === 'Haircut Only' ? 45 : 20;
+                      const exp = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+                      return `${exp.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (${days} days validity from now)`;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Notes Input */}
+                <div className="input-group">
+                  <label className="input-label">Notes (Optional)</label>
+                  <input
+                    type="text"
+                    maxLength={200}
+                    value={stampNotes}
+                    onChange={(e) => setStampNotes(e.target.value)}
+                    placeholder="e.g. Counter visit, stylist name, requested styling"
+                    className="input-field"
+                    style={{ fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                {/* Modal Action Buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    disabled={awardStampLoading}
+                    onClick={() => setCustomerForStamp(null)}
+                    className="btn btn-secondary"
+                    style={{ flex: 1, padding: '0.75rem', justifyContent: 'center' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={awardStampLoading || !selectedServiceType}
+                    className="btn btn-primary"
+                    style={{ flex: 1.5, padding: '0.75rem', justifyContent: 'center', fontWeight: 800 }}
+                  >
+                    {awardStampLoading ? 'Awarding...' : 'Confirm & Award Stamp'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>,
           document.body
@@ -3148,12 +3606,12 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               style={{
                 width: '100%',
                 maxWidth: '480px',
-                background: '#12141c',
+                background: 'var(--color-charcoal, #1A1A1A)',
                 border: '1.5px solid var(--gold-primary)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1.5rem',
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.9)',
-                color: '#ffffff',
+                color: 'var(--color-cream, #F9F8F6)',
                 boxSizing: 'border-box',
               }}
               onClick={(e) => e.stopPropagation()}

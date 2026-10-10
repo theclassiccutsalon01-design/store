@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Sitemap Template for The Classic Cut Salon
+  Deployment Action:
+  1. Replace https://YOUR-CONFIRMED-DOMAIN.com with the official custom production domain.
+  2. Copy/rename this file to sitemap.xml in client/public/.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://YOUR-CONFIRMED-DOMAIN.com/</loc>
+    <lastmod>2026-10-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

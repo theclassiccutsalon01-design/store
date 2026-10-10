@@ -20,7 +20,23 @@ const offerCouponSchema = new mongoose.Schema(
     },
     discountType: {
       type: String,
-      default: '30% to 40% OFF',
+      default: 'Spin to Reveal (25%-50% OFF)',
+    },
+    discountPercent: {
+      type: Number,
+      default: null,
+    },
+    isSpun: {
+      type: Boolean,
+      default: false,
+    },
+    spunAt: {
+      type: Date,
+      default: null,
+    },
+    spinNumber: {
+      type: Number,
+      default: null,
     },
     status: {
       type: String,
@@ -69,7 +85,8 @@ const offerCouponSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Helpful index on user and status
+// Helpful indexes on user, status, and spin eligibility
 offerCouponSchema.index({ user: 1, status: 1 });
+offerCouponSchema.index({ user: 1, isSpun: 1, status: 1 });
 
 export const OfferCoupon = mongoose.model('OfferCoupon', offerCouponSchema);

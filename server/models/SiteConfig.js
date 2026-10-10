@@ -79,7 +79,7 @@ const siteConfigSchema = new mongoose.Schema(
     },
     defaultOfferDiscount: {
       type: String,
-      default: '30% to 40% OFF',
+      default: '25% to 50% OFF',
     },
   },
   { timestamps: true }

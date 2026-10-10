@@ -64,14 +64,14 @@ export const SetAdminPasswordModal = ({ isOpen, onClose }) => {
         className="modal-content"
         data-lenis-prevent="true"
         style={{
-          background: 'linear-gradient(145deg, #161922 0%, #0d0f14 100%)',
+          background: 'linear-gradient(145deg, #242424 0%, #1A1A1A 100%)',
           border: '1px solid rgba(212, 175, 55, 0.45)',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(212, 175, 55, 0.25)',
           borderRadius: '16px',
           maxWidth: '440px',
           width: '100%',
           padding: 'clamp(1.2rem, 3.5vw, 1.85rem)',
-          color: '#ffffff',
+          color: 'var(--color-cream, #F9F8F6)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}

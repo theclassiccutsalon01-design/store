@@ -1,8 +1,15 @@
+import mongoose from 'mongoose';
 import { User } from '../models/User.js';
 import { VisitLog } from '../models/VisitLog.js';
 import { OfferCoupon } from '../models/OfferCoupon.js';
 import { SiteConfig } from '../models/SiteConfig.js';
 import { broadcastRealtimeEvent } from '../services/realtimeService.js';
+import {
+  calculateSpinDiscount,
+  calculateStampExpiry,
+  ALLOWED_SERVICE_TYPES,
+  SERVICE_EXPIRY_CONFIG,
+} from '../config/loyaltyConfig.js';
 
 // Safely drop old TTL index so expired coupons are soft-preserved with reason rather than wiped out
 OfferCoupon.collection?.dropIndex('expiresAt_1').catch(() => {});
@@ -39,111 +46,208 @@ const generateCouponCode = () => {
   return code;
 };
 
-// Helper: Check and apply 45-day inactivity decay to user's stamps
-// If user does not visit within 45 days of last stamp, decrement stamps by 1 (minimum 0)
-export const applyStampInactivityCheck = async (user) => {
-  if (!user) return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0 };
+// Helper: Synchronize user's active stamps against per-stamp service expiries and legacy 45-day rules
+export const syncUserActiveStamps = async (user) => {
+  if (!user) return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0, activeStamps: [] };
 
-  // If user has stamps > 0 but lastStampDate wasn't set previously, initialize it
-  if (user.currentStamps > 0 && !user.lastStampDate) {
-    user.lastStampDate = user.updatedAt || new Date();
-    await user.save();
-  }
+  const now = new Date();
 
-  if (user.currentStamps <= 0 || !user.lastStampDate) {
-    return { decayed: false, stampsDecayed: 0, daysUntilDecay: 0 };
-  }
+  // 1. Soft-expire any active stamps past their authoritative expiry date
+  await VisitLog.updateMany(
+    {
+      user: user._id,
+      status: 'active',
+      expiresAt: { $lte: now, $ne: null },
+    },
+    { $set: { status: 'expired' } }
+  );
 
-  const now = Date.now();
-  const lastStampTime = new Date(user.lastStampDate).getTime();
-  const elapsedDays = (now - lastStampTime) / (1000 * 60 * 60 * 24);
+  // 2. Safely handle legacy visit logs where expiresAt is null (45-day inactivity rule)
+  await VisitLog.updateMany(
+    {
+      user: user._id,
+      status: 'active',
+      expiresAt: null,
+      visitedAt: { $lte: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000) },
+    },
+    { $set: { status: 'expired' } }
+  );
 
-  if (elapsedDays >= 45) {
-    const periods = Math.floor(elapsedDays / 45);
-    const prevStamps = user.currentStamps;
-    user.currentStamps = Math.max(0, user.currentStamps - periods);
-    const stampsDecayed = prevStamps - user.currentStamps;
+  // 3. Fetch all remaining active unexpired stamps sorted oldest-first
+  const activeStamps = await VisitLog.find({
+    user: user._id,
+    status: 'active',
+    $or: [
+      { expiresAt: { $gt: now } },
+      { expiresAt: null, visitedAt: { $gt: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000) } },
+    ],
+  }).sort({ visitedAt: 1 });
 
-    if (user.currentStamps === 0) {
+  const prevStamps = user.currentStamps || 0;
+  const newStampsCount = activeStamps.length > 0 ? Math.min(5, activeStamps.length) : 0;
+
+  if (prevStamps !== newStampsCount) {
+    user.currentStamps = newStampsCount;
+    if (newStampsCount === 0) {
       user.lastStampDate = null;
     } else {
-      user.lastStampDate = new Date(lastStampTime + periods * 45 * 24 * 60 * 60 * 1000);
+      user.lastStampDate = activeStamps[activeStamps.length - 1].visitedAt;
     }
     await user.save();
-
-    const daysUntilDecay = user.lastStampDate
-      ? Math.max(0, Math.ceil(((new Date(user.lastStampDate).getTime() + 45 * 24 * 60 * 60 * 1000) - now) / (1000 * 60 * 60 * 24)))
-      : 0;
-
-    return { decayed: true, stampsDecayed, daysUntilDecay };
   }
 
-  const msRemaining = (lastStampTime + 45 * 24 * 60 * 60 * 1000) - now;
-  const daysUntilDecay = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
-  return { decayed: false, stampsDecayed: 0, daysUntilDecay };
+  // 4. Calculate days until the soonest expiring active stamp
+  let daysUntilDecay = 0;
+  if (activeStamps.length > 0) {
+    const minExpiryMs = Math.min(
+      ...activeStamps.map((s) =>
+        s.expiresAt ? new Date(s.expiresAt).getTime() : new Date(s.visitedAt).getTime() + 45 * 24 * 60 * 60 * 1000
+      )
+    );
+    const msLeft = minExpiryMs - now.getTime();
+    daysUntilDecay = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+  }
+
+  const stampsDecayed = Math.max(0, prevStamps - newStampsCount);
+
+  return {
+    decayed: stampsDecayed > 0,
+    stampsDecayed,
+    daysUntilDecay,
+    activeStamps,
+  };
 };
 
-// 1. Admin Awards +1 Visit Stamp to Customer
+// Backward-compatible wrapper for existing call sites
+export const applyStampInactivityCheck = async (user) => {
+  return await syncUserActiveStamps(user);
+};
+
+// 1. Admin Awards +1 Visit Stamp to Customer with Required Service Type & Authoritative Expiry
 export const addVisitStamp = async (req, res) => {
   try {
-    const { userId, serviceName, notes } = req.body;
+    const { userId, serviceType, serviceName, notes } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+    // SEC-006: Validate userId presence and valid ObjectId format
+    if (!userId || typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid or missing customer ID format.' });
     }
+
+    // FEATURE 2: Strict Service Type Validation (Beard, Haircut + Beard, Haircut Only)
+    if (!serviceType || !ALLOWED_SERVICE_TYPES.includes(serviceType)) {
+      return res.status(400).json({
+        message: `Service type is required and must be one of: ${ALLOWED_SERVICE_TYPES.join(', ')}.`,
+      });
+    }
+
+    // SEC-006: Validate input types and bound string lengths
+    if (serviceName !== undefined && typeof serviceName !== 'string') {
+      return res.status(400).json({ message: 'Service name must be a valid text string.' });
+    }
+    if (notes !== undefined && typeof notes !== 'string') {
+      return res.status(400).json({ message: 'Notes must be a valid text string.' });
+    }
+
+    const cleanServiceName = (serviceName ? String(serviceName).trim() : serviceType).slice(0, 100);
+    const cleanNotes = (notes ? String(notes).trim() : '').slice(0, 500);
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Apply stamp inactivity check BEFORE calculating new stamp
-    // so any expired stamps decay first instead of jumping/glitching
-    await applyStampInactivityCheck(user);
+    // SEC-006: Enforce role boundaries and eligibility rules
+    if (user.role !== 'user') {
+      return res.status(400).json({ message: 'Visit stamps can only be awarded to registered customer accounts.' });
+    }
+    if (user.isDeleted) {
+      return res.status(400).json({ message: 'Cannot award visit stamps to an account in the recovery bin.' });
+    }
 
-    // Record visit log
+    // Synchronize stamps and expire any past-due ones BEFORE adding new stamp
+    await syncUserActiveStamps(user);
+
+    // FEATURE 2: Authoritative backend calculation of expiry timestamp
+    // Beard: 20 days | Haircut + Beard: 20 days | Haircut Only: 45 days
+    // Client-supplied expiry date (if any) is strictly rejected/ignored.
+    const now = new Date();
+    const { expiresAt, days } = calculateStampExpiry(serviceType, now);
+
+    // Record visit log with serviceType, authoritative expiresAt, and active status
     const visit = await VisitLog.create({
       user: user._id,
       admin: req.user._id,
-      serviceName: serviceName || 'Salon Grooming & Haircut',
-      notes: notes || '',
+      serviceType,
+      serviceName: cleanServiceName,
+      notes: cleanNotes,
       stampAwarded: 1,
-      visitedAt: new Date(),
+      visitedAt: now,
+      expiresAt,
+      status: 'active',
     });
 
-    user.currentStamps = Math.max(0, user.currentStamps || 0) + 1;
+    // Query all active unexpired stamps including this new one
+    const activeStamps = await VisitLog.find({
+      user: user._id,
+      status: 'active',
+      $or: [
+        { expiresAt: { $gt: now } },
+        { expiresAt: null, visitedAt: { $gt: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000) } },
+      ],
+    }).sort({ visitedAt: 1 });
+
     user.lifetimeVisits = (user.lifetimeVisits || 0) + 1;
-    user.lastStampDate = new Date(); // Stamp awarded date set to current visit date
+    user.lastStampDate = now;
 
     let offerUnlocked = false;
     let newCoupon = null;
 
-    // Check if 5 stamps milestone reached
-    if (user.currentStamps >= 5) {
+    // Check if 5 active stamps milestone reached
+    if (activeStamps.length >= 5) {
       offerUnlocked = true;
 
-      // Get salon default offer settings from CMS
+      // Select the oldest 5 active stamps to mark as redeemed
+      const stampsToRedeem = activeStamps.slice(0, 5);
+
       const siteConfig = await SiteConfig.findOne();
       const offerTitle = siteConfig?.defaultOfferTitle || 'Luxury Grooming Offer Coupon';
-      const offerDiscount = siteConfig?.defaultOfferDiscount || '30% to 40% OFF';
 
-      // Generate unique coupon
+      // Generate unique coupon code
       let uniqueCode = generateCouponCode();
       while (await OfferCoupon.findOne({ code: uniqueCode })) {
         uniqueCode = generateCouponCode();
       }
 
+      // Create new eligible coupon with spin wheel unlocked (isSpun: false)
       newCoupon = await OfferCoupon.create({
         code: uniqueCode,
         user: user._id,
         title: offerTitle,
-        discountType: offerDiscount,
+        discountType: 'Spin to Reveal (25%-50% OFF)',
+        isSpun: false,
+        discountPercent: null,
         expiresAt: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000), // 35 days validity
       });
 
-      // RESET active stamps to 0 for next cycle
-      user.currentStamps = 0;
-      user.lastStampDate = null;
+      // Mark the 5 active stamps as redeemed and link to the new coupon
+      await VisitLog.updateMany(
+        { _id: { $in: stampsToRedeem.map((s) => s._id) } },
+        {
+          $set: {
+            status: 'redeemed',
+            redeemedAt: now,
+            redeemedCoupon: newCoupon._id,
+          },
+        }
+      );
+
+      // Remaining active stamps for next cycle
+      user.currentStamps = Math.max(0, activeStamps.length - 5);
+      if (user.currentStamps === 0) {
+        user.lastStampDate = null;
+      }
+    } else {
+      user.currentStamps = activeStamps.length;
     }
 
     await user.save();
@@ -152,10 +256,10 @@ export const addVisitStamp = async (req, res) => {
     const activeCouponsCount = await OfferCoupon.countDocuments({
       user: user._id,
       status: 'active',
-      expiresAt: { $gt: new Date() },
+      expiresAt: { $gt: now },
     });
 
-    // Broadcast live event to customer's phone/desktop and all admins in real-time without reload
+    // Broadcast live event to customer's phone/desktop and all admins in real-time
     broadcastRealtimeEvent({
       type: 'STAMP_AWARDED',
       targetUserId: user._id,
@@ -164,22 +268,26 @@ export const addVisitStamp = async (req, res) => {
       currentStamps: user.currentStamps,
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
-      daysUntilStampDecay: 45,
+      daysUntilStampDecay: days,
+      serviceType,
+      expiresAt,
       activeCouponsCount,
       offerUnlocked,
       coupon: newCoupon,
-      serviceName: serviceName || 'Salon Grooming & Haircut',
-      timestamp: new Date(),
+      serviceName: cleanServiceName,
+      timestamp: now,
     });
 
     res.status(200).json({
       message: offerUnlocked
-        ? '🎉 Congratulations! 5th Stamp reached! 30% to 40% OFF Special Offer Coupon awarded (valid for 35 days) and stamps reset to 0.'
-        : `Stamp awarded successfully! Customer now has ${user.currentStamps}/5 stamps. Next visit due within 45 days.`,
+        ? '🎉 Congratulations! 5th Stamp reached! Special Offer Coupon awarded (valid for 35 days) with Spin the Wheel unlocked!'
+        : `Stamp awarded successfully for ${serviceType}! Customer now has ${user.currentStamps}/5 active stamps (valid for ${days} days).`,
       currentStamps: user.currentStamps,
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
-      daysUntilStampDecay: 45,
+      serviceType,
+      expiresAt,
+      daysUntilStampDecay: days,
       activeCouponsCount,
       offerUnlocked,
       coupon: newCoupon,
@@ -187,14 +295,18 @@ export const addVisitStamp = async (req, res) => {
     });
   } catch (error) {
     console.error('Add Stamp Error:', error);
-    res.status(500).json({ message: 'Failed to add visit stamp. ' + error.message });
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid customer identifier format.' });
+    }
+    res.status(500).json({ message: 'Failed to add visit stamp.' });
   }
 };
 
 // 2. Admin: Get All Customers with Stamp Counts, 45-Day Expiry & Filters
+// SEC-005: Strict pagination controls, max page limits, headers, and out-of-range protection
 export const getAllCustomers = async (req, res) => {
   try {
-    const { search = '' } = req.query;
+    const { search = '', page, limit } = req.query;
 
     // Clean up any accounts past their 24h restore window
     await purgeExpiredDeletedUsers();
@@ -214,9 +326,49 @@ export const getAllCustomers = async (req, res) => {
       }
     }
 
-    const users = await User.find(query)
-      .select('-password')
-      .sort({ createdAt: -1 });
+    const total = await User.countDocuments(query);
+    const isExplicitPagination = page !== undefined || limit !== undefined;
+
+    let parsedPage = 1;
+    let parsedLimit = 50;
+    const MAX_LIMIT = 100;
+
+    if (page !== undefined) {
+      const p = parseInt(page, 10);
+      if (isNaN(p) || p < 1) {
+        return res.status(400).json({ message: 'Page parameter must be a positive integer greater than or equal to 1.' });
+      }
+      parsedPage = p;
+    }
+
+    if (limit !== undefined) {
+      const l = parseInt(limit, 10);
+      if (isNaN(l) || l < 1) {
+        return res.status(400).json({ message: 'Limit parameter must be a positive integer greater than or equal to 1.' });
+      }
+      if (l > MAX_LIMIT) {
+        return res.status(400).json({ message: `Limit parameter cannot exceed maximum permitted limit of ${MAX_LIMIT}.` });
+      }
+      parsedLimit = l;
+    }
+
+    const totalPages = Math.ceil(total / parsedLimit) || 1;
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    // Always attach pagination metadata headers
+    res.set('X-Total-Count', String(total));
+    res.set('X-Page', String(parsedPage));
+    res.set('X-Total-Pages', String(totalPages));
+    res.set('X-Limit', String(parsedLimit));
+
+    let users = [];
+    if (skip < total) {
+      users = await User.find(query)
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parsedLimit);
+    }
 
     const fiveDaysLater = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
     const now = new Date();
@@ -258,7 +410,18 @@ export const getAllCustomers = async (req, res) => {
       })
     );
 
-    res.status(200).json(customerData);
+    if (isExplicitPagination) {
+      return res.status(200).json({
+        customers: customerData,
+        total,
+        page: parsedPage,
+        totalPages,
+        limit: parsedLimit,
+      });
+    }
+
+    // Backward-compatible array response when no pagination parameters are sent
+    return res.status(200).json(customerData);
   } catch (error) {
     console.error('Get Customers Error:', error);
     res.status(500).json({ message: 'Failed to fetch customers' });
@@ -277,7 +440,8 @@ export const getVisitHistory = async (req, res) => {
     }
 
     const visits = await VisitLog.find({ user: targetUserId })
-      .populate('admin', 'name')
+      .populate('admin', 'name email role')
+      .populate('redeemedCoupon', 'code title discountType discountPercent status')
       .sort({ visitedAt: -1 });
 
     res.status(200).json(visits);
@@ -292,7 +456,7 @@ export const getMyLoyalty = async (req, res) => {
     // Soft-expire any coupons that exceeded 35 days (preserve status and reason)
     await markExpiredCoupons();
 
-    const user = await User.findById(req.user._id).select('name email phone currentStamps lifetimeVisits lastStampDate');
+    const user = await User.findById(req.user._id).select('name email phone currentStamps lifetimeVisits lastStampDate spinCount');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -355,10 +519,12 @@ export const getMyLoyalty = async (req, res) => {
         currentStamps: user.currentStamps,
         lifetimeVisits: user.lifetimeVisits,
         lastStampDate: user.lastStampDate,
+        spinCount: user.spinCount || 0,
       },
       currentStamps: user.currentStamps,
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
+      spinCount: user.spinCount || 0,
       daysUntilStampDecay: decayInfo.daysUntilDecay,
       isStampDecayWarning: decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5,
       stampDecayWarningMessage:
@@ -511,7 +677,7 @@ export const deleteCustomer = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete Customer Error:', error);
-    res.status(500).json({ message: 'Failed to delete customer: ' + error.message });
+    res.status(500).json({ message: 'Failed to delete customer.' });
   }
 };
 
@@ -665,7 +831,7 @@ export const updateCustomerByAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error('Update Customer Error:', error);
-    res.status(500).json({ message: 'Failed to update customer: ' + error.message });
+    res.status(500).json({ message: 'Failed to update customer.' });
   }
 };
 
@@ -815,4 +981,212 @@ export const extendCouponExpiryAdmin = async (req, res) => {
     res.status(500).json({ message: 'Failed to extend coupon validity: ' + error.message });
   }
 };
+
+// 14. User: Spin Discount Wheel to Unlock Guaranteed Milestone or Random Discount
+// Validates ownership, checks coupon eligibility, updates spin counter atomically, and calculates discount.
+export const spinDiscountWheel = async (req, res) => {
+  try {
+    const { couponId } = req.body;
+
+    if (!couponId || typeof couponId !== 'string' || !mongoose.Types.ObjectId.isValid(couponId)) {
+      return res.status(400).json({ message: 'Valid coupon identifier format is required.' });
+    }
+
+    // 1. Fetch coupon belonging to authenticated user
+    const coupon = await OfferCoupon.findOne({ _id: couponId, user: req.user._id });
+    if (!coupon) {
+      return res.status(404).json({ message: 'Coupon not found or does not belong to your account.' });
+    }
+
+    // 2. Validate coupon eligibility
+    if (coupon.status !== 'active' || coupon.isRedeemed) {
+      return res.status(400).json({
+        message: 'This coupon is not active or has already been redeemed.',
+        status: coupon.status,
+      });
+    }
+
+    if (new Date() > new Date(coupon.expiresAt)) {
+      coupon.status = 'expired';
+      await coupon.save();
+      return res.status(400).json({
+        message: 'This coupon has expired and is no longer eligible for a spin.',
+        isExpired: true,
+      });
+    }
+
+    if (coupon.isSpun) {
+      return res.status(400).json({
+        message: 'This coupon has already been spun. Multiple spins per coupon are not permitted.',
+        isAlreadySpun: true,
+        discountPercent: coupon.discountPercent,
+        coupon,
+      });
+    }
+
+    // 3. Concurrency-safe atomic check-and-set:
+    // Only ONE simultaneous request can flip isSpun from false to true
+    const lockedCoupon = await OfferCoupon.findOneAndUpdate(
+      {
+        _id: coupon._id,
+        user: req.user._id,
+        isSpun: { $ne: true },
+        status: 'active',
+        isRedeemed: false,
+        expiresAt: { $gt: new Date() },
+      },
+      {
+        $set: {
+          isSpun: true,
+          spunAt: new Date(),
+        },
+      },
+      { new: false }
+    );
+
+    if (!lockedCoupon) {
+      return res.status(400).json({
+        message: 'This coupon has already been spun or is currently being processed.',
+      });
+    }
+
+    // 4. Concurrency-safe atomic increment of user's persistent spin count
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $inc: { spinCount: 1 } },
+      { new: true }
+    );
+
+    const spinNumber = updatedUser.spinCount;
+
+    // 5. Authoritative backend discount milestone calculation
+    // Enforces: 1-49 (25/30/35), 50 (40), 51-99 (25/30/35), 100 (45/50), 150 (40), 200 (45/50)...
+    const discountPercent = calculateSpinDiscount(spinNumber);
+
+    // 6. Persist final award details to OfferCoupon
+    const finalCoupon = await OfferCoupon.findByIdAndUpdate(
+      lockedCoupon._id,
+      {
+        $set: {
+          discountPercent,
+          discountType: `${discountPercent}% OFF`,
+          spinNumber,
+          spunAt: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    // 7. Broadcast realtime update so customer views reflect the unlocked discount immediately
+    broadcastRealtimeEvent({
+      type: 'COUPON_SPUN',
+      targetUserId: req.user._id,
+      userId: req.user._id,
+      couponId: finalCoupon._id,
+      code: finalCoupon.code,
+      discountPercent,
+      spinNumber,
+      timestamp: new Date(),
+    });
+
+    return res.status(200).json({
+      message: `🎉 Congratulations! You unlocked ${discountPercent}% OFF!`,
+      discountPercent,
+      spinNumber,
+      coupon: finalCoupon,
+    });
+  } catch (error) {
+    console.error('Spin Discount Wheel Error:', error);
+    return res.status(500).json({ message: 'Failed to process spin. Please try again.' });
+  }
+};
+
+// 15. Admin: Get Customer Service & Stamp History (Feature 3)
+// Protected by admin authorization, returns full audit trail with service types, issuing admin, expiries, statuses, and redemptions.
+export const getCustomerServiceAndStampHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid customer identifier format is required.' });
+    }
+
+    const customer = await User.findById(userId)
+      .select('name email phone currentStamps lifetimeVisits spinCount role isDeleted createdAt')
+      .lean();
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer record not found.' });
+    }
+
+    const now = new Date();
+
+    // Soft-expire past-due stamps
+    await VisitLog.updateMany(
+      {
+        user: customer._id,
+        status: 'active',
+        expiresAt: { $lte: now, $ne: null },
+      },
+      { $set: { status: 'expired' } }
+    );
+
+    const visits = await VisitLog.find({ user: customer._id })
+      .populate('admin', 'name email role')
+      .populate('redeemedCoupon', 'code title discountType discountPercent status')
+      .sort({ visitedAt: -1 })
+      .lean();
+
+    const formattedHistory = visits.map((v) => {
+      let computedStatus = v.status || 'active';
+      if (computedStatus === 'active' && v.expiresAt && new Date(v.expiresAt) <= now) {
+        computedStatus = 'expired';
+      }
+
+      return {
+        _id: v._id,
+        serviceType: v.serviceType || 'Legacy Stamp',
+        serviceName: v.serviceName,
+        notes: v.notes,
+        stampAwarded: v.stampAwarded || 1,
+        visitedAt: v.visitedAt,
+        expiresAt: v.expiresAt,
+        status: computedStatus,
+        admin: v.admin
+          ? {
+              _id: v.admin._id,
+              name: v.admin.name,
+              email: v.admin.email,
+            }
+          : null,
+        redeemedAt: v.redeemedAt,
+        redeemedCoupon: v.redeemedCoupon
+          ? {
+              _id: v.redeemedCoupon._id,
+              code: v.redeemedCoupon.code,
+              discountType: v.redeemedCoupon.discountType,
+              discountPercent: v.redeemedCoupon.discountPercent,
+            }
+          : null,
+      };
+    });
+
+    return res.status(200).json({
+      customer: {
+        _id: customer._id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        currentStamps: customer.currentStamps,
+        lifetimeVisits: customer.lifetimeVisits,
+        spinCount: customer.spinCount || 0,
+      },
+      history: formattedHistory,
+    });
+  } catch (error) {
+    console.error('Get Customer Service & Stamp History Error:', error);
+    return res.status(500).json({ message: 'Failed to fetch customer stamp and service history.' });
+  }
+};
+
 

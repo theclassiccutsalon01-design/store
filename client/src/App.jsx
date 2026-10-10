@@ -9,6 +9,7 @@ import { LocationContact } from './components/LocationContact';
 import { Footer } from './components/Footer';
 import { Home, Scissors, Gift, Phone, User, ShieldCheck } from 'lucide-react';
 import { LoadingScreen } from './components/LoadingScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Code-split interactive modals on-demand to reduce initial JS payload
 const StampCard = React.lazy(() => import('./components/StampCard').then(m => ({ default: m.StampCard })));
@@ -210,7 +211,9 @@ export default function App() {
       <SiteConfigProvider>
         <SmoothScrollProvider>
           {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
-          <MainContent isLoading={isLoading} />
+          <ErrorBoundary>
+            <MainContent isLoading={isLoading} />
+          </ErrorBoundary>
         </SmoothScrollProvider>
       </SiteConfigProvider>
     </AuthProvider>

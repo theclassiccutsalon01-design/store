@@ -49,7 +49,7 @@ export const LoadingScreen = ({ onComplete }) => {
         position: 'fixed',
         inset: 0,
         zIndex: 99999,
-        background: '#07090e',
+        background: 'var(--color-charcoal, #1A1A1A)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -69,7 +69,7 @@ export const LoadingScreen = ({ onComplete }) => {
           width: '450px',
           height: '450px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(7, 9, 14, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(26, 26, 26, 0) 70%)',
           pointerEvents: 'none',
         }}
       />

@@ -46,8 +46,8 @@ const runTests = async () => {
     const expiredCoupon = await OfferCoupon.create({
       code: 'TEST-EXP35',
       user: testCustomer1._id,
-      title: '30% to 40% OFF Luxury Grooming',
-      discountType: '30% to 40% OFF',
+      title: '25% to 50% OFF Luxury Grooming',
+      discountType: '25% to 50% OFF',
       status: 'active',
       expiresAt: expiredDate,
     });
@@ -78,8 +78,8 @@ const runTests = async () => {
     const soonCoupon = await OfferCoupon.create({
       code: 'TEST-SOON5',
       user: testCustomer1._id,
-      title: '30% to 40% OFF Luxury Grooming',
-      discountType: '30% to 40% OFF',
+      title: '25% to 50% OFF Luxury Grooming',
+      discountType: '25% to 50% OFF',
       status: 'active',
       expiresAt: soonDate,
     });

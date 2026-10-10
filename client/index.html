@@ -3,9 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d0e12" />
+    <meta name="theme-color" content="#1a1a1a" />
     <meta name="description" content="The Classic Cut Salon - Premium Gentleman Barber, Precision Scissor Styling, Beard Detailing & Loyalty Rewards" />
     <link rel="icon" type="image/webp" href="/logo/logo.webp" />
+    <link rel="apple-touch-icon" href="/logo/logo.jpg" />
+
+    <!-- Open Graph / Facebook / WhatsApp Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Classic Cut Salon" />
+    <meta property="og:title" content="The Classic Cut Salon | Luxury Gentleman Grooming" />
+    <meta property="og:description" content="Premium Gentleman Barber, Precision Scissor Styling, Beard Detailing & Loyalty Rewards" />
+    <meta property="og:image" content="/backgrounds/imgi_394_1000_F_675403262_HTWy014WRCcGlggsScfGJP0fYNZHbOYr.webp" />
+    <meta property="og:image:alt" content="The Classic Cut Salon - Luxury Barber Experience" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Classic Cut Salon | Luxury Gentleman Grooming" />
+    <meta name="twitter:description" content="Premium Gentleman Barber, Precision Scissor Styling, Beard Detailing & Loyalty Rewards" />
+    <meta name="twitter:image" content="/backgrounds/imgi_394_1000_F_675403262_HTWy014WRCcGlggsScfGJP0fYNZHbOYr.webp" />
+
+    <!-- 
+      Canonical URL Tag:
+      BLOCKED pending confirmation of official custom production domain.
+      Before deployment: Uncomment and specify official canonical domain:
+      <link rel="canonical" href="https://YOUR-CONFIRMED-DOMAIN.com/" />
+    -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Preload Critical LCP Hero Poster Image for Instant Visual Paint -->
@@ -28,11 +51,53 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap"
       />
     </noscript>
-    <!-- Early Backend Wake-Up / Warm-Up Trigger (Pings Render during initial HTML parse) -->
+
+    <!-- Schema.org HairSalon Structured Data (Verified Business Facts Only) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HairSalon",
+      "name": "The Classic Cut Salon",
+      "description": "Founded on the timeless traditions of classic gentleman grooming, The Classic Cut Salon delivers unmatched scissor craftsmanship, soothing hair therapy, and precision straight-razor beard styling in an ambiance of refined sophistication.",
+      "image": "/logo/logo.webp",
+      "telephone": "+919322188848",
+      "email": "theclassiccutsalon01@gmail.com",
+      "priceRange": "₹₹",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "At Gevrai jategaon road Rohithal",
+        "addressLocality": "Gevrai",
+        "addressRegion": "Maharashtra",
+        "postalCode": "431127",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 19.2528181,
+        "longitude": 75.8555902
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:30",
+          "closes": "21:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Saturday", "Sunday"],
+          "opens": "08:30",
+          "closes": "22:00"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Early Backend Wake-Up / Warm-Up Trigger (Targets active Render backend from .env.production) -->
     <script>
       try {
         var host = window.location.hostname;
-        var api = host !== 'localhost' && host !== '127.0.0.1' ? 'https://the-classic-cut-salon-api.onrender.com/api' : '/api';
+        var api = host !== 'localhost' && host !== '127.0.0.1' ? 'https://salonwebsite-kxc1.onrender.com/api' : '/api';
         fetch(api + '/health', { mode: 'cors' }).catch(function(){});
       } catch (e) {}
     </script>

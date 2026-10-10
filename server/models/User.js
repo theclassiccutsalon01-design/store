@@ -49,6 +49,11 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    spinCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     lastStampDate: {
       type: Date,
       default: null,

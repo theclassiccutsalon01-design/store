@@ -64,11 +64,11 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
           height: scrolled ? '62px' : '68px',
           zIndex: 1000,
           transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-          backgroundColor: scrolled ? 'rgba(9, 10, 14, 0.95)' : 'rgba(9, 10, 14, 0.82)',
+          backgroundColor: scrolled ? 'rgba(26, 26, 26, 0.96)' : 'rgba(26, 26, 26, 0.88)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: scrolled ? '1px solid rgba(212, 175, 55, 0.3)' : '1px solid rgba(255, 255, 255, 0.07)',
-          boxShadow: scrolled ? '0 8px 30px rgba(0, 0, 0, 0.7)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(212, 175, 55, 0.3)' : '1px solid rgba(249, 248, 246, 0.08)',
+          boxShadow: scrolled ? '0 8px 30px rgba(0, 0, 0, 0.75)' : 'none',
         }}
       >
         <div
@@ -206,7 +206,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                       height: '24px',
                       borderRadius: '50%',
                       background: 'var(--gold-gradient)',
-                      color: '#0b0c10',
+                      color: '#1A1A1A',
                       fontWeight: 800,
                       fontSize: '0.72rem',
                       display: 'flex',
@@ -217,7 +217,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                   >
                     {(user?.name || 'U').charAt(0).toUpperCase()}
                   </div>
-                  <span style={{ fontWeight: 600, color: '#ffffff', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-cream, #F9F8F6)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user?.name?.split(' ')[0] || 'Profile'}
                   </span>
                   {!isAdmin && (
@@ -303,7 +303,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                     height: '20px',
                     borderRadius: '50%',
                     background: 'var(--gold-gradient)',
-                    color: '#0b0c10',
+                    color: '#1A1A1A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -391,7 +391,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
               width: '88%',
               maxWidth: '340px',
               height: '100%',
-              backgroundColor: '#11131a',
+              backgroundColor: '#1A1A1A',
               borderLeft: '1px solid rgba(212, 175, 55, 0.3)',
               display: 'flex',
               flexDirection: 'column',
@@ -407,8 +407,8 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(20, 23, 32, 0.8)',
+                borderBottom: '1px solid rgba(249, 248, 246, 0.1)',
+                background: 'rgba(34, 34, 34, 0.95)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -451,7 +451,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
               {isAuthenticated ? (
                 <div
                   style={{
-                    background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.14) 0%, rgba(20, 23, 32, 0.95) 100%)',
+                    background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(34, 34, 34, 0.95) 100%)',
                     border: '1px solid rgba(212, 175, 55, 0.35)',
                     borderRadius: 'var(--radius-sm)',
                     padding: '0.9rem',
@@ -465,7 +465,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                         height: '42px',
                         borderRadius: '50%',
                         background: 'var(--gold-gradient)',
-                        color: '#0b0c10',
+                        color: '#1A1A1A',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -731,7 +731,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
 const desktopLinkStyle = {
   background: 'none',
   border: 'none',
-  color: '#e2e8f0',
+  color: 'var(--color-cream)',
   fontSize: '0.92rem',
   fontWeight: 500,
   cursor: 'pointer',
@@ -743,10 +743,10 @@ const desktopLinkStyle = {
 const mobileMenuItemStyle = {
   width: '100%',
   padding: '0.8rem 0.9rem',
-  background: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  background: 'rgba(249, 248, 246, 0.04)',
+  border: '1px solid rgba(249, 248, 246, 0.08)',
   borderRadius: 'var(--radius-sm)',
-  color: '#ffffff',
+  color: 'var(--color-cream)',
   fontSize: '0.88rem',
   fontWeight: 500,
   textAlign: 'left',

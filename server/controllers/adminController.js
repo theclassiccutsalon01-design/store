@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { User } from '../models/User.js';
 import { broadcastRealtimeEvent } from '../services/realtimeService.js';
 
@@ -70,49 +71,66 @@ export const addStaffAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error('Add Admin Error:', error);
-    res.status(500).json({ message: 'Failed to promote user to admin: ' + error.message });
+    res.status(500).json({ message: 'Failed to promote user to admin.' });
   }
 };
 
-// 3. Super Admin: Delete an Admin
+// 3. Super Admin: Remove an Admin from Staff (Safe Demotion to Customer)
 export const deleteStaffAdmin = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid admin ID format.' });
+    }
 
     const targetAdmin = await User.findById(id);
     if (!targetAdmin) {
       return res.status(404).json({ message: 'Admin account not found' });
     }
 
-    // Protection: Super Admin can NEVER be deleted
+    // Protection: Super Admin can NEVER be deleted or demoted
     const configuredAdminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase().trim() : null;
     if (
       targetAdmin.role === 'superadmin' ||
       (configuredAdminEmail && targetAdmin.email.toLowerCase() === configuredAdminEmail)
     ) {
       return res.status(403).json({
-        message: 'Forbidden: The Super Admin account is protected and cannot be deleted!',
+        message: 'Forbidden: The Super Admin account is protected and cannot be deleted or demoted!',
       });
     }
 
-    // Protection: Cannot delete own account
+    // Protection: Cannot demote own account (self-demotion prevention)
     if (targetAdmin._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({ message: 'You cannot delete your own admin account' });
+      return res.status(400).json({ message: 'You cannot demote or remove your own admin account.' });
+    }
+
+    // Role check: Only accounts with role 'admin' can be demoted via this staff endpoint
+    if (targetAdmin.role !== 'admin') {
+      return res.status(400).json({ message: 'Target account is not an admin staff member.' });
     }
 
     const adminName = targetAdmin.name;
     const adminEmail = targetAdmin.email;
 
-    // Permanently remove admin
-    await User.findByIdAndDelete(targetAdmin._id);
+    // SEC-011: Safe demotion to standard customer role rather than permanently deleting the account
+    // Preserves customer profile, booking history, stamps, and referential integrity in VisitLog
+    targetAdmin.role = 'user';
+    await targetAdmin.save();
 
     broadcastRealtimeEvent({ type: 'ADMIN_LIST_CHANGED' });
 
     res.status(200).json({
-      message: `Admin ${adminName} (${adminEmail}) was successfully removed from admin staff.`,
+      message: `Admin ${adminName} (${adminEmail}) was successfully demoted to customer role.`,
+      user: {
+        _id: targetAdmin._id,
+        name: targetAdmin.name,
+        email: targetAdmin.email,
+        role: targetAdmin.role,
+      },
     });
   } catch (error) {
-    console.error('Delete Admin Error:', error);
-    res.status(500).json({ message: 'Failed to delete admin: ' + error.message });
+    console.error('Demote Admin Error:', error);
+    res.status(500).json({ message: 'Failed to demote admin staff member.' });
   }
 };

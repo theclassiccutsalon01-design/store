@@ -34,14 +34,15 @@ export const ModernServicesExperience = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // 3 Vibrant Shaped Cards (directly from Screenshot 2026-09-07 232400.png)
+  // 3 Distinct Luxury Shaped Cards
   const FEATURED_SERVICES = [
     {
       id: 'classic-haircut',
       title: 'Classic Haircut',
       category: 'Master Precision Scissor Cut',
-      color: '#1d4ed8', // Electric Blue
-      textColor: '#ffffff',
+      color: '#1A1A1A', // Deep Charcoal
+      accentColor: '#D4AF37', // Champagne Gold
+      textColor: 'var(--color-cream)',
       tagline: 'Signature Styling & Precision Fade',
       description:
         'Experience the pinnacle of grooming with our classic haircuts, where tradition meets contemporary style.',
@@ -61,8 +62,9 @@ export const ModernServicesExperience = () => {
       id: 'beard-trim-shape',
       title: 'Beard Trim Shape',
       category: 'Bespoke Beard Sculpting',
-      color: '#047857', // Emerald Green
-      textColor: '#ffffff',
+      color: '#262626', // Elevated Charcoal Card
+      accentColor: '#B87333', // Muted Copper
+      textColor: 'var(--color-cream)',
       tagline: 'Razor Perimeter & Cedarwood Balm',
       description:
         'Experience the pinnacle of grooming with our classic haircuts, where tradition meets contemporary style.',
@@ -82,8 +84,9 @@ export const ModernServicesExperience = () => {
       id: 'hot-towel-shave',
       title: 'Hot Towel Shave',
       category: 'Royal Feather Razor Shave',
-      color: '#db2777', // Pop Vibrant Pink
-      textColor: '#ffffff',
+      color: '#1E1E1E', // Refined Charcoal Surface
+      accentColor: '#D4AF37', // Champagne Gold
+      textColor: 'var(--color-cream)',
       tagline: 'Warm Botanical Lather & Steam',
       description:
         'Experience the pinnacle of grooming with our classic haircuts, where tradition meets contemporary style.',
@@ -101,12 +104,12 @@ export const ModernServicesExperience = () => {
     },
   ];
 
-  // 8 Pop-Geometric Haircut Shape Models (from Screenshot 2026-09-07 232335.png & 232315.png)
+  // 8 Geometric Atelier Haircut Shape Models (Harmonized with Luxury Palette)
   const POP_SHAPE_HAIRCUTS = [
     {
       id: 1,
       name: 'Textured Crop Fade',
-      bgColor: '#eab308', // Yellow
+      accentColor: '#D4AF37', // Champagne Gold
       shapeClass: 'shape-rounded-rect',
       image: '/hair-cut/imgi_240_1000_F_288480491_sSOxyfSGfwPlMrHCvpNEQZHTbEiEgkIO.webp',
       tag: 'Trending 2026',
@@ -114,7 +117,7 @@ export const ModernServicesExperience = () => {
     {
       id: 2,
       name: 'Mid Taper Fade',
-      bgColor: '#84cc16', // Lime
+      accentColor: '#B87333', // Muted Copper
       shapeClass: 'shape-m-arch',
       image: '/hair-cut/imgi_214_1000_F_327372387_nDiUJ8UxnzYVwUsT3fHmUImZOL7jDZ9r.webp',
       tag: 'Clean Precision',
@@ -122,7 +125,7 @@ export const ModernServicesExperience = () => {
     {
       id: 3,
       name: 'Modern Executive Quiff',
-      bgColor: '#f472b6', // Pastel Pink
+      accentColor: '#D4AF37', // Champagne Gold
       shapeClass: 'shape-flower-four',
       image: '/hair-cut/imgi_218_1000_F_469681744_FZWt6LKXLoCU4XVv8Cjx6ZFmwNlNLm7x.webp',
       tag: 'Gentleman Classic',
@@ -130,7 +133,7 @@ export const ModernServicesExperience = () => {
     {
       id: 4,
       name: 'Slick Back Fade',
-      bgColor: '#fb923c', // Orange
+      accentColor: '#B87333', // Muted Copper
       shapeClass: 'shape-u-cup',
       image: '/hair-cut/imgi_272_1000_F_1136144072_OPmo46myEzyxZlp1IwUwwGQS2zkpy1Dk.webp',
       tag: 'High Volume',
@@ -138,7 +141,7 @@ export const ModernServicesExperience = () => {
     {
       id: 5,
       name: 'Beard Fade Blend',
-      bgColor: '#22c55e', // Emerald
+      accentColor: '#D4AF37', // Champagne Gold
       shapeClass: 'shape-triple-bubble',
       image: '/hair-cut/imgi_414_1000_F_612963026_EgapnuI2p4b7ef9R7w8wRr5oHwEKU6Ts.webp',
       tag: 'Master Combo',
@@ -146,7 +149,7 @@ export const ModernServicesExperience = () => {
     {
       id: 6,
       name: 'Natural Wavy Flow',
-      bgColor: '#fda4af', // Rose Dome
+      accentColor: '#B87333', // Muted Copper
       shapeClass: 'shape-dome-arch',
       image: '/hair-cut/imgi_313_1000_F_292538620_17sS0WLcHCDk3ChhkoTyCh5HDm2zBV53.webp',
       tag: 'Effortless Flow',
@@ -154,7 +157,7 @@ export const ModernServicesExperience = () => {
     {
       id: 7,
       name: 'Gentleman Contour',
-      bgColor: '#facc15', // Yellow Sun
+      accentColor: '#D4AF37', // Champagne Gold
       shapeClass: 'shape-circle-oval',
       image: '/hair-cut/imgi_252_1000_F_434370728_kHa2nwVqDX1oxH2hJfwYh3J323knuVWV.webp',
       tag: 'Timeless Cut',
@@ -162,7 +165,7 @@ export const ModernServicesExperience = () => {
     {
       id: 8,
       name: 'French Crop Taper',
-      bgColor: '#e7e5e4', // Almond Sand
+      accentColor: '#B87333', // Muted Copper
       shapeClass: 'shape-soft-squarcle',
       image: '/figures/client_reveal.webp',
       tag: 'Sharp Edges',
@@ -174,15 +177,15 @@ export const ModernServicesExperience = () => {
       id="services"
       style={{
         position: 'relative',
-        background: '#07090e',
+        background: '#1A1A1A',
         padding: '0 0 5rem 0',
         overflow: 'hidden',
       }}
     >
       {/* ========================================================================= */}
-      {/* 1. SCALLOPED CANOPY AWNING BORDER (Screenshot 2026-09-07 232420.png) */}
+      {/* 1. SCALLOPED CANOPY AWNING BORDER */}
       {/* ========================================================================= */}
-      <div style={{ width: '100%', overflow: 'hidden', lineHeight: 0, background: '#0b0c10' }}>
+      <div style={{ width: '100%', overflow: 'hidden', lineHeight: 0, background: '#1A1A1A' }}>
         <svg
           viewBox="0 0 1200 64"
           preserveAspectRatio="none"
@@ -203,23 +206,22 @@ export const ModernServicesExperience = () => {
                Q 1050 56, 1100 0 
                Q 1150 56, 1200 0 
                L 1200 64 L 0 64 Z"
-            fill="#092118"
+            fill="#222222"
           />
         </svg>
       </div>
 
       {/* ========================================================================= */}
       {/* 2. THE SCISSOR RIBBON BANNER: "CLASSIC CUTS, MODERN LOOKS THE BEST" */}
-      {/* (Inspired directly by Screenshot 2026-09-07 232315.png & 232420.png) */}
       {/* ========================================================================= */}
       <div
         style={{
-          background: 'linear-gradient(180deg, #092118 0%, #0d2e22 55%, #081711 100%)',
+          background: 'linear-gradient(180deg, #222222 0%, #1A1A1A 100%)',
           padding: '4.5rem 1.5rem 5rem',
           position: 'relative',
           textAlign: 'center',
           overflow: 'hidden',
-          borderBottom: '3px solid rgba(212, 175, 55, 0.4)',
+          borderBottom: '3px solid rgba(212, 175, 55, 0.35)',
         }}
       >
         {/* Curving Scissor Yellow Ribbon SVG */}
@@ -239,14 +241,14 @@ export const ModernServicesExperience = () => {
             <path
               d="M -50 40 Q 360 260 720 160 T 1500 80"
               fill="none"
-              stroke="#fbbf24"
+              stroke="#D4AF37"
               strokeWidth="10"
               strokeLinecap="round"
             />
             <path
               d="M -50 40 Q 360 260 720 160 T 1500 80"
               fill="none"
-              stroke="#d97706"
+              stroke="#B87333"
               strokeWidth="3"
               strokeDasharray="12 12"
             />
@@ -260,9 +262,9 @@ export const ModernServicesExperience = () => {
             position: 'absolute',
             top: '22%',
             left: 'clamp(20px, 8vw, 120px)',
-            color: '#f59e0b',
+            color: 'var(--gold-primary)',
             transform: 'rotate(-25deg)',
-            filter: 'drop-shadow(0 4px 14px rgba(245, 158, 11, 0.6))',
+            filter: 'drop-shadow(0 4px 14px rgba(212, 175, 55, 0.5))',
           }}
         >
           <Scissors size={44} strokeWidth={2.5} />
@@ -274,9 +276,9 @@ export const ModernServicesExperience = () => {
             position: 'absolute',
             bottom: '22%',
             right: 'clamp(20px, 8vw, 120px)',
-            color: '#f59e0b',
+            color: 'var(--gold-primary)',
             transform: 'rotate(45deg)',
-            filter: 'drop-shadow(0 4px 14px rgba(245, 158, 11, 0.6))',
+            filter: 'drop-shadow(0 4px 14px rgba(212, 175, 55, 0.5))',
           }}
         >
           <Scissors size={44} strokeWidth={2.5} />
@@ -289,11 +291,11 @@ export const ModernServicesExperience = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              background: 'rgba(0, 0, 0, 0.45)',
-              border: '1.5px solid #fbbf24',
+              background: 'rgba(26, 26, 26, 0.85)',
+              border: '1.5px solid var(--gold-primary)',
               borderRadius: 'var(--radius-full)',
               padding: '0.35rem 1.1rem',
-              color: '#fbbf24',
+              color: 'var(--gold-primary)',
               fontSize: '0.8rem',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -309,14 +311,14 @@ export const ModernServicesExperience = () => {
           <h1
             className="retro-display-title"
             style={{
-              fontFamily: '"Montserrat", "Arial Black", sans-serif',
+              fontFamily: 'var(--font-serif)',
               fontWeight: 900,
               fontSize: 'clamp(2rem, 5.2vw, 4.2rem)',
               lineHeight: 1.1,
-              color: '#ffffff',
+              color: 'var(--color-cream)',
               textTransform: 'uppercase',
               letterSpacing: '0.02em',
-              textShadow: '0 8px 24px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.3)',
+              textShadow: '0 8px 24px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.25)',
               marginBottom: '1.4rem',
             }}
           >
@@ -326,37 +328,36 @@ export const ModernServicesExperience = () => {
           <p
             style={{
               fontSize: 'clamp(0.95rem, 1.8vw, 1.25rem)',
-              color: '#d1fae5',
+              color: 'var(--color-cream-subtle)',
               maxWidth: '680px',
               margin: '0 auto 2.25rem',
               lineHeight: 1.6,
               fontWeight: 500,
             }}
           >
-            we combine tradition with trend. From sharp fades to classic shaves — get a grooming experience built just for you.
+            We combine tradition with trend. From sharp fades to classic shaves — get a grooming experience built just for you.
           </p>
 
-          {/* Bold Orange CTA Button (From Screenshot 2026-09-07 232315.png) */}
+          {/* Gold / Charcoal CTAs */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <a
               href={`https://wa.me/${config.whatsapp?.replace(/[^0-9]/g, '')}?text=Hi!%20I%20would%20like%20to%20book%20an%20appointment%20for%20a%20modern%20haircut.`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-pop-orange"
+              className="btn btn-primary"
               style={{
-                background: '#ea580c',
-                color: '#ffffff',
-                border: '2px solid #fdba74',
+                background: 'var(--gold-gradient)',
+                color: '#1A1A1A',
+                border: '2px solid rgba(245, 215, 127, 0.5)',
                 padding: '0.85rem 2.4rem',
                 borderRadius: 'var(--radius-full)',
                 fontWeight: 800,
                 fontSize: '1rem',
-                textTransform: 'capitalize',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.6rem',
-                boxShadow: '0 10px 25px rgba(234, 88, 12, 0.55), 0 4px 10px rgba(0,0,0,0.4)',
+                boxShadow: '0 10px 25px rgba(212, 175, 55, 0.4), 0 4px 10px rgba(0,0,0,0.4)',
                 textDecoration: 'none',
                 transition: 'all 0.25s ease',
               }}
@@ -372,9 +373,9 @@ export const ModernServicesExperience = () => {
                 subtitle: 'Explore 9 Signature Men Haircuts'
               })}
               style={{
-                background: 'rgba(0, 0, 0, 0.5)',
-                color: '#fbbf24',
-                border: '2px solid rgba(251, 191, 36, 0.6)',
+                background: 'rgba(26, 26, 26, 0.8)',
+                color: 'var(--gold-primary)',
+                border: '2px solid rgba(212, 175, 55, 0.5)',
                 padding: '0.85rem 1.8rem',
                 borderRadius: 'var(--radius-full)',
                 fontWeight: 700,
@@ -395,13 +396,14 @@ export const ModernServicesExperience = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. POP-GEOMETRIC SHAPE GALLERY (Screenshot 2026-09-07 232335.png) */}
+      {/* 3. ATELIER GEOMETRIC SHAPE GALLERY */}
       {/* ========================================================================= */}
       <div
         style={{
-          background: '#1e3a8a', // Electric navy blue background from screenshot 232335
+          background: '#1A1A1A',
           padding: '4.5rem 1rem',
           position: 'relative',
+          borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
         }}
       >
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -411,7 +413,7 @@ export const ModernServicesExperience = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                color: '#facc15',
+                color: 'var(--gold-primary)',
                 fontSize: '0.78rem',
                 fontWeight: 800,
                 textTransform: 'uppercase',
@@ -424,15 +426,16 @@ export const ModernServicesExperience = () => {
             <h2
               style={{
                 fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
-                fontWeight: 900,
-                color: '#ffffff',
+                fontWeight: 800,
+                color: 'var(--color-cream)',
                 letterSpacing: '-0.01em',
                 marginBottom: '0.6rem',
+                fontFamily: 'var(--font-serif)',
               }}
             >
-              POP ICONIC <span style={{ color: '#facc15' }}>HAIR SHAPES</span>
+              ATELIER ICONIC <span style={{ color: 'var(--gold-primary)' }}>HAIR SHAPES</span>
             </h2>
-            <p style={{ color: '#bfdbfe', maxWidth: '600px', margin: '0 auto', fontSize: '0.92rem' }}>
+            <p style={{ color: 'var(--color-cream-subtle)', maxWidth: '600px', margin: '0 auto', fontSize: '0.92rem' }}>
               Every facial profile deserves its matching architectural shape. Tap any portrait to book your signature transformation.
             </p>
           </div>
@@ -449,7 +452,9 @@ export const ModernServicesExperience = () => {
                   subtitle: `${item.tag} - Artisan Precision Hair Cut`,
                 })}
                 style={{
-                  background: item.bgColor,
+                  background: 'linear-gradient(180deg, #252525 0%, #1A1A1A 100%)',
+                  border: `1.5px solid ${item.accentColor}33`,
+                  borderRadius: '24px',
                   padding: '1.25rem 1rem',
                   display: 'flex',
                   flexDirection: 'column',
@@ -458,8 +463,8 @@ export const ModernServicesExperience = () => {
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
                 }}
               >
                 {/* Cutout Container */}
@@ -500,9 +505,9 @@ export const ModernServicesExperience = () => {
                 >
                   <div
                     style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 900,
-                      color: '#0f172a',
+                      fontSize: '0.88rem',
+                      fontWeight: 800,
+                      color: 'var(--color-cream, #F9F8F6)',
                       lineHeight: 1.2,
                     }}
                   >
@@ -512,9 +517,10 @@ export const ModernServicesExperience = () => {
                     style={{
                       fontSize: '0.68rem',
                       fontWeight: 700,
-                      color: 'rgba(15, 23, 42, 0.75)',
+                      color: item.accentColor,
                       textTransform: 'uppercase',
-                      marginTop: '0.2rem',
+                      marginTop: '0.25rem',
+                      letterSpacing: '0.06em',
                     }}
                   >
                     {item.tag}
@@ -527,19 +533,20 @@ export const ModernServicesExperience = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. "OUR SERVICES" 3 VIBRANT SHAPED CARDS (Screenshot 2026-09-07 232400.png) */}
+      {/* 4. "OUR SERVICES" 3 LUXURY SHAPED CARDS (Deep Charcoal Luxury Section) */}
       {/* ========================================================================= */}
       <div
         id="services"
         style={{
-          background: '#fef08a', // Creamy Butter-Yellow from Screenshot 2026-09-07 232400.png
+          background: 'var(--color-charcoal, #1A1A1A)',
           padding: '5rem 1.25rem',
           position: 'relative',
-          color: '#0f172a',
+          color: 'var(--color-cream, #F9F8F6)',
+          borderTop: '1px solid rgba(212, 175, 55, 0.15)',
         }}
       >
         <div className="container" style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          {/* Header Row: Title & Subtitle + Orange "See All Services" Button */}
+          {/* Header Row: Title & Subtitle + "See All Services" Button */}
           <div
             style={{
               display: 'flex',
@@ -551,25 +558,40 @@ export const ModernServicesExperience = () => {
             }}
           >
             <div style={{ maxWidth: '680px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  color: 'var(--color-gold, #D4AF37)',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  marginBottom: '0.45rem',
+                }}
+              >
+                <Scissors size={14} /> Bespoke Gentleman Services
+              </div>
               <h2
                 style={{
-                  fontFamily: '"Montserrat", "Arial Black", sans-serif',
-                  fontWeight: 900,
+                  fontFamily: 'var(--font-serif)',
+                  fontWeight: 800,
                   fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
-                  color: '#064e3b', // Deep forest green header
+                  color: 'var(--color-cream, #F9F8F6)',
                   lineHeight: 1.1,
                   marginBottom: '1rem',
                   letterSpacing: '-0.02em',
                 }}
               >
-                Our Services
+                Our <span className="gold-text">Services</span>
               </h2>
               <p
                 style={{
                   fontSize: 'clamp(0.98rem, 1.8vw, 1.2rem)',
-                  color: '#065f46',
+                  color: 'var(--text-secondary, #D2CFC9)',
                   lineHeight: 1.55,
-                  fontWeight: 600,
+                  fontWeight: 400,
                   margin: 0,
                 }}
               >
@@ -582,8 +604,9 @@ export const ModernServicesExperience = () => {
                 type="button"
                 onClick={() => setSeeAllServicesOpen(true)}
                 style={{
-                  background: '#ea580c',
-                  color: '#ffffff',
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #B87333 100%)',
+                  color: '#1A1A1A',
+                  border: 'none',
                   padding: '0.85rem 1.8rem',
                   borderRadius: 'var(--radius-full)',
                   fontWeight: 800,
@@ -591,8 +614,7 @@ export const ModernServicesExperience = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  boxShadow: '0 8px 20px rgba(234, 88, 12, 0.4)',
-                  border: 'none',
+                  boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease',
                 }}
@@ -612,17 +634,18 @@ export const ModernServicesExperience = () => {
                 onClick={() => setActiveServiceModal(srv)}
                 style={{
                   background: srv.color,
+                  border: '1.5px solid rgba(212, 175, 55, 0.25)',
                   borderRadius: '32px',
                   padding: '1.75rem 1.5rem 2rem',
                   color: srv.textColor,
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 18px 45px rgba(0, 0, 0, 0.25)',
+                  boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
                   position: 'relative',
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
                 }}
               >
                 <div>
@@ -671,6 +694,7 @@ export const ModernServicesExperience = () => {
                       fontSize: '1.75rem',
                       lineHeight: 1.15,
                       marginBottom: '0.75rem',
+                      color: 'var(--color-cream, #F9F8F6)',
                     }}
                   >
                     {srv.title}
@@ -684,6 +708,7 @@ export const ModernServicesExperience = () => {
                       opacity: 0.95,
                       marginBottom: '1.75rem',
                       fontWeight: 500,
+                      color: 'var(--text-secondary, #D2CFC9)',
                     }}
                   >
                     {srv.description}
@@ -702,9 +727,9 @@ export const ModernServicesExperience = () => {
                   <button
                     onClick={() => setActiveServiceModal(srv)}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      color: '#ffffff',
-                      border: '2px solid rgba(255, 255, 255, 0.85)',
+                      background: 'rgba(212, 175, 55, 0.1)',
+                      color: 'var(--gold-primary, #D4AF37)',
+                      border: '1.5px solid var(--gold-primary, #D4AF37)',
                       borderRadius: 'var(--radius-full)',
                       padding: '0.65rem 1.6rem',
                       fontWeight: 800,
@@ -722,7 +747,9 @@ export const ModernServicesExperience = () => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.35rem',
-                        background: 'rgba(255, 255, 255, 0.18)',
+                        background: 'rgba(249, 248, 246, 0.08)',
+                        color: 'var(--color-cream, #F9F8F6)',
+                        border: '1px solid rgba(249, 248, 246, 0.12)',
                         padding: '0.42rem 0.85rem',
                         borderRadius: 'var(--radius-full)',
                         fontSize: '0.8rem',
@@ -746,7 +773,7 @@ export const ModernServicesExperience = () => {
       {/* ========================================================================= */}
       <div
         style={{
-          background: '#0b0e14',
+          background: 'var(--color-charcoal, #1A1A1A)',
           padding: '4.5rem 1.25rem',
           borderTop: '2px solid rgba(212, 175, 55, 0.3)',
           position: 'relative',
@@ -759,7 +786,7 @@ export const ModernServicesExperience = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                color: 'var(--gold-primary)',
+                color: 'var(--color-gold, #D4AF37)',
                 fontSize: '0.78rem',
                 fontWeight: 800,
                 textTransform: 'uppercase',
@@ -772,14 +799,14 @@ export const ModernServicesExperience = () => {
             <h2
               style={{
                 fontSize: 'clamp(1.7rem, 3.8vw, 2.6rem)',
-                color: '#ffffff',
+                color: 'var(--color-cream, #F9F8F6)',
                 fontWeight: 800,
                 marginBottom: '0.6rem',
               }}
             >
               The Master Barber <span className="gold-text">Dossier & Style Blueprints</span>
             </h2>
-            <p style={{ color: '#94a3b8', maxWidth: '620px', margin: '0 auto', fontSize: '0.9rem' }}>
+            <p style={{ color: 'var(--text-secondary, #D2CFC9)', maxWidth: '620px', margin: '0 auto', fontSize: '0.9rem' }}>
               From historical barber craftsmanship to 2026 trending fade blueprints. Tap any master chart to inspect full profiles and face-shape recommendations.
             </p>
           </div>
@@ -912,7 +939,7 @@ export const ModernServicesExperience = () => {
             data-lenis-prevent="true"
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#0d111a',
+              background: 'var(--color-charcoal, #1A1A1A)',
               border: `2px solid ${activeServiceModal.color}`,
               borderRadius: '22px',
               maxWidth: '520px',
@@ -936,7 +963,7 @@ export const ModernServicesExperience = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: `linear-gradient(135deg, ${activeServiceModal.color}33 0%, #0d111a 100%)`,
+                background: `linear-gradient(135deg, ${activeServiceModal.color}33 0%, #1A1A1A 100%)`,
               }}
             >
               <div>
@@ -1114,7 +1141,7 @@ export const ModernServicesExperience = () => {
             data-lenis-prevent="true"
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#0d111a',
+              background: 'var(--color-charcoal, #1A1A1A)',
               border: '2px solid var(--gold-primary)',
               borderRadius: '22px',
               maxWidth: '540px',
@@ -1138,14 +1165,14 @@ export const ModernServicesExperience = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'rgba(18, 22, 32, 0.98)',
+                background: 'rgba(26, 26, 26, 0.98)',
               }}
             >
               <div>
                 <h4 style={{ fontSize: '1.05rem', color: 'var(--gold-primary)', margin: 0, fontWeight: 700 }}>
                   {selectedPoster.title}
                 </h4>
-                <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.15rem 0 0' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #D2CFC9)', margin: '0.15rem 0 0' }}>
                   {selectedPoster.subtitle}
                 </p>
               </div>
@@ -1180,7 +1207,7 @@ export const ModernServicesExperience = () => {
                 minHeight: 0,
                 padding: '0.85rem',
                 textAlign: 'center',
-                background: '#07090e',
+                background: 'var(--color-charcoal, #1A1A1A)',
                 overflowY: 'auto',
                 WebkitOverflowScrolling: 'touch',
                 overscrollBehavior: 'contain',
@@ -1216,7 +1243,7 @@ export const ModernServicesExperience = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.75rem',
-                background: 'rgba(18, 22, 32, 0.98)',
+                background: 'rgba(26, 26, 26, 0.98)',
               }}
             >
               <span style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
@@ -1265,7 +1292,7 @@ export const ModernServicesExperience = () => {
             data-lenis-prevent="true"
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#0d111a',
+              background: 'var(--color-charcoal, #1A1A1A)',
               border: '2px solid var(--gold-primary)',
               borderRadius: '22px',
               maxWidth: '640px',
@@ -1289,7 +1316,7 @@ export const ModernServicesExperience = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, #0d111a 100%)',
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, #1A1A1A 100%)',
               }}
             >
               <div>
@@ -1636,8 +1663,8 @@ export const ModernServicesExperience = () => {
         }
         .extra-art-caption {
           padding: 0.85rem 1rem 1rem;
-          background: #0d111a;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background: var(--color-charcoal, #1A1A1A);
+          border-top: 1px solid rgba(212, 175, 55, 0.2);
         }
         .extra-art-caption h4 {
           font-size: 0.88rem;

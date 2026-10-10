@@ -1,0 +1,9 @@
+# The Classic Cut Salon - robots.txt
+User-agent: *
+Allow: /
+
+# Prevent crawlers from indexing backend API endpoints
+Disallow: /api/
+
+# Note: Once the custom production domain is finalized, uncomment and update the sitemap URL:
+# Sitemap: https://<YOUR-CONFIRMED-DOMAIN>/sitemap.xml

@@ -11,6 +11,10 @@ const hashOtp = (code) => {
   return crypto.createHash('sha256').update(String(code)).digest('hex');
 };
 
+export const generateSecureOtp = () => {
+  return crypto.randomInt(100000, 1000000).toString();
+};
+
 const generateToken = (id) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -37,8 +41,8 @@ export const requestOtp = async (req, res) => {
       return res.status(400).json({ message: 'User already registered with this email. Please login.' });
     }
 
-    // Generate random 6-digit OTP and SHA-256 hash
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure 6-digit OTP and SHA-256 hash
+    const otpCode = generateSecureOtp();
     const hashedOtp = hashOtp(otpCode);
 
     // Delete existing OTPs for this email
@@ -481,8 +485,8 @@ export const requestForgotPasswordOtp = async (req, res) => {
       });
     }
 
-    // Generate random 6-digit OTP and SHA-256 hash
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure 6-digit OTP and SHA-256 hash
+    const otpCode = generateSecureOtp();
     const hashedOtp = hashOtp(otpCode);
 
     // Invalidate existing OTPs for this email
