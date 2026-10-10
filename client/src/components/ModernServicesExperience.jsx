@@ -71,7 +71,7 @@ export const ModernServicesExperience = () => {
       fullDescription:
         'Master trimmer sculpt matching your jawline aesthetics. Cheek and neck line defined with feather razor precision, steam towel softening, and nourished with organic cedarwood beard oil.',
       duration: '25 Mins',
-      image: '/hair-cut/imgi_414_1000_F_612963026_EgapnuI2p4b7ef9R7w8wRr5oHwEKU6Ts.webp',
+      image: '/figures/beard_trim_sculpt_real.webp',
       shapeType: 'bowtie', // Bowtie/butterfly shape
       inclusions: [
         'Jawline & Stubble Symmetry Alignment',
@@ -93,7 +93,7 @@ export const ModernServicesExperience = () => {
       fullDescription:
         'Traditional imperial wet shave experience. Begins with pre-shave essential oils, warm herbal lather applied with badger-hair brush, precision feather razor stroke, and double hot eucalyptus towel wrap with cold balm finish.',
       duration: '30 Mins',
-      image: '/figures/client_wash.webp',
+      image: '/figures/hot_towel_shave_real.webp',
       shapeType: 'triple-arch', // Triple arch/cloud shape
       inclusions: [
         'Essential Pre-Shave Oil Treatment',
@@ -143,7 +143,7 @@ export const ModernServicesExperience = () => {
       name: 'Beard Fade Blend',
       accentColor: '#D4AF37', // Champagne Gold
       shapeClass: 'shape-triple-bubble',
-      image: '/hair-cut/imgi_414_1000_F_612963026_EgapnuI2p4b7ef9R7w8wRr5oHwEKU6Ts.webp',
+      image: '/figures/beard_trim_sculpt_real.webp',
       tag: 'Master Combo',
     },
     {
@@ -167,7 +167,7 @@ export const ModernServicesExperience = () => {
       name: 'French Crop Taper',
       accentColor: '#B87333', // Muted Copper
       shapeClass: 'shape-soft-squarcle',
-      image: '/figures/client_reveal.webp',
+      image: '/hair-cut/french_crop_taper_real.webp',
       tag: 'Sharp Edges',
     },
   ];
@@ -813,18 +813,18 @@ export const ModernServicesExperience = () => {
 
           {/* Grid of Extra Visual Masterpieces Filling Left to Right */}
           <div className="extra-art-grid">
-            {/* 1. Vintage Barber Shop Art (imgi_115) */}
+            {/* 1. Master Barber Craft (master_barber_real.webp) */}
             <div
               className="extra-art-card"
               onClick={() => setSelectedPoster({
-                url: '/extra/imgi_115_52a6a37771836805aa53b59bf731dda2.webp',
-                title: 'Barber Shop: Try A Different Style',
-                subtitle: 'Authentic vintage barbershop artistry with razor, clippers, and gentleman grooming aesthetics',
+                url: '/extra/master_barber_real.webp',
+                title: 'Master Barber: Try A Different Style',
+                subtitle: 'Authentic gentleman barber artistry with handmade leather apron, chrome shears, and vintage salon styling',
               })}
             >
               <img
-                src="/extra/imgi_115_52a6a37771836805aa53b59bf731dda2.webp"
-                alt="Vintage Barber Shop Art"
+                src="/extra/master_barber_real.webp"
+                alt="Master Barber Gentleman Craft"
                 className="extra-art-img"
                 loading="lazy"
                 decoding="async"
@@ -833,7 +833,7 @@ export const ModernServicesExperience = () => {
               />
               <div className="extra-art-caption">
                 <h4>💈 Try A Different Style</h4>
-                <p>Authentic Vintage Barber Art</p>
+                <p>Authentic Master Barber Craft</p>
               </div>
             </div>
 
