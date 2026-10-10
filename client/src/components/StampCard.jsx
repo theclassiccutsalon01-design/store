@@ -937,51 +937,61 @@ export const StampCard = ({
                   </div>
                 )}
 
-                {/* 45-Day Stamp Inactivity Policy Banner (Only visible when user has stamps) */}
-                {currentStamps > 0 && (
-                  <div
-                    style={{
-                      marginBottom: '1rem',
-                      background: loyaltyData?.isStampDecayWarning
-                        ? 'rgba(239, 68, 68, 0.12)'
-                        : 'rgba(212, 175, 55, 0.08)',
-                      border: loyaltyData?.isStampDecayWarning
-                        ? '1.5px solid rgba(239, 68, 68, 0.5)'
-                        : '1px solid rgba(212, 175, 55, 0.38)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '0.65rem 0.85rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.65rem',
-                      fontSize: '0.78rem',
-                      color: loyaltyData?.isStampDecayWarning ? '#fca5a5' : '#fef08a',
-                    }}
-                  >
-                    {loyaltyData?.isStampDecayWarning ? (
-                      <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
-                    ) : (
-                      <Clock size={16} color="var(--gold-primary)" style={{ flexShrink: 0 }} />
-                    )}
-                    <div style={{ lineHeight: 1.45 }}>
-                      <span style={{ fontWeight: 700, color: loyaltyData?.isStampDecayWarning ? '#f87171' : 'var(--gold-primary)' }}>
-                        {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Inactivity Warning:' : '⏳ 45-Day Visit Policy:'}
-                      </span>{' '}
-                      {loyaltyData?.daysUntilStampDecay !== undefined ? (
-                        <span>
-                          Next visit due within{' '}
-                          <strong style={{ color: '#ffffff', textDecoration: 'underline' }}>
-                            {loyaltyData.daysUntilStampDecay} day{loyaltyData.daysUntilStampDecay !== 1 ? 's' : ''}
-                          </strong>{' '}
-                          to keep current stamps and earn your next one! If 45 days pass without a visit, 1 stamp will expire.
-                        </span>
+                {/* Stamp Inactivity Policy Banner (Only visible when user has stamps) */}
+                {currentStamps > 0 && (() => {
+                  const latestVisit = loyaltyData?.recentVisits?.[0];
+                  const activeVisitWithExpiry = loyaltyData?.recentVisits?.find(v => v.expiresAt && v.status === 'active') || latestVisit;
+                  const calculatedPolicyDays = activeVisitWithExpiry?.expiresAt && activeVisitWithExpiry?.visitedAt
+                    ? Math.round((new Date(activeVisitWithExpiry.expiresAt).getTime() - new Date(activeVisitWithExpiry.visitedAt).getTime()) / (1000 * 60 * 60 * 24))
+                    : (activeVisitWithExpiry?.serviceType === 'Beard' || activeVisitWithExpiry?.serviceType === 'Haircut + Beard' ? 20 : 45);
+
+                  const policyDays = loyaltyData?.policyDays || calculatedPolicyDays || 45;
+
+                  return (
+                    <div
+                      style={{
+                        marginBottom: '1rem',
+                        background: loyaltyData?.isStampDecayWarning
+                          ? 'rgba(239, 68, 68, 0.12)'
+                          : 'rgba(212, 175, 55, 0.08)',
+                        border: loyaltyData?.isStampDecayWarning
+                          ? '1.5px solid rgba(239, 68, 68, 0.5)'
+                          : '1px solid rgba(212, 175, 55, 0.38)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.65rem 0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.65rem',
+                        fontSize: '0.78rem',
+                        color: loyaltyData?.isStampDecayWarning ? '#fca5a5' : '#fef08a',
+                      }}
+                    >
+                      {loyaltyData?.isStampDecayWarning ? (
+                        <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
                       ) : (
-                        <span>
-                          Collect your next stamp within 45 days of your previous visit to preserve your stamp progress.
-                        </span>
+                        <Clock size={16} color="var(--gold-primary)" style={{ flexShrink: 0 }} />
                       )}
+                      <div style={{ lineHeight: 1.45 }}>
+                        <span style={{ fontWeight: 700, color: loyaltyData?.isStampDecayWarning ? '#f87171' : 'var(--gold-primary)' }}>
+                          {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Inactivity Warning:' : '⏳ Visit Policy:'}
+                        </span>{' '}
+                        {loyaltyData?.daysUntilStampDecay !== undefined ? (
+                          <span>
+                            Next visit due within{' '}
+                            <strong style={{ color: '#ffffff', textDecoration: 'underline' }}>
+                              {loyaltyData.daysUntilStampDecay} day{loyaltyData.daysUntilStampDecay !== 1 ? 's' : ''}
+                            </strong>{' '}
+                            to keep current stamps and earn your next one! If {policyDays} days pass without a visit, 1 stamp will expire.
+                          </span>
+                        ) : (
+                          <span>
+                            Collect your next stamp within {policyDays} days of your previous visit to preserve your stamp progress.
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Stamp Card Presentation */}
                 <div

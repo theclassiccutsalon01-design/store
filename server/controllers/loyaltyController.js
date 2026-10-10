@@ -96,16 +96,35 @@ export const syncUserActiveStamps = async (user) => {
     await user.save();
   }
 
-  // 4. Calculate days until the soonest expiring active stamp
+  // 4. Calculate days until the soonest expiring active stamp and determine its policy duration
   let daysUntilDecay = 0;
+  let policyDays = 45;
   if (activeStamps.length > 0) {
-    const minExpiryMs = Math.min(
-      ...activeStamps.map((s) =>
-        s.expiresAt ? new Date(s.expiresAt).getTime() : new Date(s.visitedAt).getTime() + 45 * 24 * 60 * 60 * 1000
-      )
-    );
+    let minExpiryMs = Infinity;
+    let nextExpiringStamp = null;
+    for (const s of activeStamps) {
+      const expMs = s.expiresAt
+        ? new Date(s.expiresAt).getTime()
+        : new Date(s.visitedAt).getTime() + 45 * 24 * 60 * 60 * 1000;
+      if (expMs < minExpiryMs) {
+        minExpiryMs = expMs;
+        nextExpiringStamp = s;
+      }
+    }
     const msLeft = minExpiryMs - now.getTime();
     daysUntilDecay = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+    if (nextExpiringStamp) {
+      if (nextExpiringStamp.expiresAt && nextExpiringStamp.visitedAt) {
+        policyDays = Math.round(
+          (new Date(nextExpiringStamp.expiresAt).getTime() - new Date(nextExpiringStamp.visitedAt).getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+      } else if (nextExpiringStamp.serviceType === 'Beard' || nextExpiringStamp.serviceType === 'Haircut + Beard') {
+        policyDays = 20;
+      } else {
+        policyDays = 45;
+      }
+    }
   }
 
   const stampsDecayed = Math.max(0, prevStamps - newStampsCount);
@@ -114,6 +133,7 @@ export const syncUserActiveStamps = async (user) => {
     decayed: stampsDecayed > 0,
     stampsDecayed,
     daysUntilDecay,
+    policyDays,
     activeStamps,
   };
 };
@@ -526,6 +546,7 @@ export const getMyLoyalty = async (req, res) => {
       lastStampDate: user.lastStampDate,
       spinCount: user.spinCount || 0,
       daysUntilStampDecay: decayInfo.daysUntilDecay,
+      policyDays: decayInfo.policyDays,
       isStampDecayWarning: decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5,
       stampDecayWarningMessage:
         decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5
