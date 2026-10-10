@@ -133,8 +133,6 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
         src={(!config.heroVideoUrl || config.heroVideoUrl === '/video1.mp4' || config.heroVideoUrl === '/backgroundvideo.mp4' || config.heroVideoUrl === '/video/backgroundvideo.mp4') ? '/video/salon-hero-video.mp4?v=20261010' : config.heroVideoUrl}
       >
         <source src="/video/salon-hero-video.mp4?v=20261010" type="video/mp4" />
-        <source src="/video/backgroundvideo.mp4" type="video/mp4" />
-        <source src="/video/WhatsApp%20Video%202026-10-09%20at%2018.45.32%20(2).mp4" type="video/mp4" />
       </video>
 
       {/* 2. Matching Luxury Background Music (Optimized preload: none to save initial bandwidth) */}
@@ -145,8 +143,6 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
         preload="none"
       >
         <source src="/music/salon-hero-music.mp3?v=20261010" type="audio/mpeg" />
-        <source src="/music/music.mpeg" type="audio/mpeg" />
-        <source src="/music/salon-music.mp3" type="audio/mpeg" />
       </audio>
 
       {/* 3. Ultra-Lightweight Transparent Gradient (Guarantees Sharp Video Clarity) */}
