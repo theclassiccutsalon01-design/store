@@ -347,31 +347,31 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
                     stroke="url(#goldBorderGrad)"
                     strokeWidth="4"
                   />
-                  <g transform={`rotate(${midAngle + 90}, ${tx}, ${ty})`}>
+                  <g transform={`translate(${tx}, ${ty}) rotate(${midAngle + 90})`}>
                     <text
-                      x={0}
-                      y={-3}
+                      x="0"
+                      y="-4"
                       fill={seg.textColor}
-                      fontSize="17"
+                      fontSize="18"
                       fontWeight="900"
-                      fontFamily="'Montserrat', 'Cinzel', serif"
+                      fontFamily="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif"
                       textAnchor="middle"
                       dominantBaseline="central"
-                      filter="drop-shadow(0 2px 4px rgba(0,0,0,0.9))"
+                      style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95)' }}
                     >
                       {seg.percent}%
                     </text>
                     <text
-                      x={0}
-                      y={12}
+                      x="0"
+                      y="11"
                       fill="#D4AF37"
-                      fontSize="8"
-                      fontWeight="700"
-                      fontFamily="'Montserrat', sans-serif"
-                      letterSpacing="2"
+                      fontSize="9"
+                      fontWeight="800"
+                      fontFamily="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif"
+                      letterSpacing="2px"
                       textAnchor="middle"
                       dominantBaseline="central"
-                      opacity="0.85"
+                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}
                     >
                       OFF
                     </text>
