@@ -60,14 +60,14 @@ export const calculateSpinDiscount = (spinNumber) => {
 // Service Types & Authoritative Expiry Configuration
 export const SERVICE_EXPIRY_CONFIG = {
   'Beard': {
-    days: 20,
-    ms: 20 * 24 * 60 * 60 * 1000,
-    label: 'Beard (Valid for 20 Days)',
+    days: 25,
+    ms: 25 * 24 * 60 * 60 * 1000,
+    label: 'Beard (Valid for 25 Days)',
   },
   'Haircut + Beard': {
-    days: 20,
-    ms: 20 * 24 * 60 * 60 * 1000,
-    label: 'Haircut + Beard (Valid for 20 Days)',
+    days: 25,
+    ms: 25 * 24 * 60 * 60 * 1000,
+    label: 'Haircut + Beard (Valid for 25 Days)',
   },
   'Haircut Only': {
     days: 45,

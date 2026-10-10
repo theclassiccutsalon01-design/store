@@ -120,7 +120,7 @@ export const syncUserActiveStamps = async (user) => {
             (1000 * 60 * 60 * 24)
         );
       } else if (nextExpiringStamp.serviceType === 'Beard' || nextExpiringStamp.serviceType === 'Haircut + Beard') {
-        policyDays = 20;
+        policyDays = 25;
       } else {
         policyDays = 45;
       }
@@ -188,7 +188,7 @@ export const addVisitStamp = async (req, res) => {
     await syncUserActiveStamps(user);
 
     // FEATURE 2: Authoritative backend calculation of expiry timestamp
-    // Beard: 20 days | Haircut + Beard: 20 days | Haircut Only: 45 days
+    // Beard: 25 days | Haircut + Beard: 25 days | Haircut Only: 45 days
     // Client-supplied expiry date (if any) is strictly rejected/ignored.
     const now = new Date();
     const { expiresAt, days } = calculateStampExpiry(serviceType, now);

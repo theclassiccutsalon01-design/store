@@ -3252,17 +3252,17 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     {[
                       {
                         type: 'Beard',
-                        days: 20,
+                        days: 25,
                         title: 'Beard',
                         desc: 'Precision Beard Grooming & Styling',
-                        badge: 'Expires in 20 Days',
+                        badge: 'Expires in 25 Days',
                       },
                       {
                         type: 'Haircut + Beard',
-                        days: 20,
+                        days: 25,
                         title: 'Haircut + Beard',
                         desc: 'Complete Haircut & Beard Royal Service',
-                        badge: 'Expires in 20 Days',
+                        badge: 'Expires in 25 Days',
                       },
                       {
                         type: 'Haircut Only',

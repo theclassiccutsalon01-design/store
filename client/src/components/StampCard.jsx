@@ -943,7 +943,7 @@ export const StampCard = ({
                   const activeVisitWithExpiry = loyaltyData?.recentVisits?.find(v => v.expiresAt && v.status === 'active') || latestVisit;
                   const calculatedPolicyDays = activeVisitWithExpiry?.expiresAt && activeVisitWithExpiry?.visitedAt
                     ? Math.round((new Date(activeVisitWithExpiry.expiresAt).getTime() - new Date(activeVisitWithExpiry.visitedAt).getTime()) / (1000 * 60 * 60 * 24))
-                    : (activeVisitWithExpiry?.serviceType === 'Beard' || activeVisitWithExpiry?.serviceType === 'Haircut + Beard' ? 20 : 45);
+                    : (activeVisitWithExpiry?.serviceType === 'Beard' || activeVisitWithExpiry?.serviceType === 'Haircut + Beard' ? 25 : 45);
 
                   const policyDays = loyaltyData?.policyDays || calculatedPolicyDays || 45;
 
