@@ -19,7 +19,6 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
-  const [spinCountDisplay, setSpinCountDisplay] = useState(null);
   const wheelRef = useRef(null);
 
   useEffect(() => {
@@ -47,9 +46,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
       });
 
       const awardedPercent = res.data.discountPercent;
-      const spinNumber = res.data.spinNumber;
       const updatedCoupon = res.data.coupon;
-      setSpinCountDisplay(spinNumber);
 
       // 2. Identify the segment index for this exact backend award
       const targetIndex = SEGMENTS.findIndex((s) => s.percent === awardedPercent);
@@ -69,7 +66,6 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
         setSpinning(false);
         setResult({
           percent: awardedPercent,
-          spinNumber,
           coupon: updatedCoupon,
         });
 
@@ -444,7 +440,6 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
             </h4>
             <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: '0 0 0.75rem 0', lineHeight: 1.4 }}>
               Your coupon code <strong>{result.coupon?.code || coupon.code}</strong> is now loaded with a guaranteed {result.percent}% discount!
-              {result.spinNumber ? ` (Spin #${result.spinNumber})` : ''}
             </p>
 
             <button
@@ -467,7 +462,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
         ) : (
           <div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #9E9A92)', marginBottom: '0.75rem', lineHeight: 1.35 }}>
-              Spins 1–49 award 25%–35%. Spin 50 guarantees 40% OFF! Spin 100 awards up to 50% OFF!
+              Spin the wheel to unlock your exclusive grooming discount on this coupon!
             </p>
             <button
               type="button"

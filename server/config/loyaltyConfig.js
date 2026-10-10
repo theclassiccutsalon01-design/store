@@ -36,8 +36,8 @@ export const calculateSpinDiscount = (spinNumber) => {
     throw new Error('Spin number must be a positive integer greater than or equal to 1.');
   }
 
-  // Century milestones: 100, 200, 300, etc.
-  if (n % 100 === 0) {
+  // Century milestones: 100 or greater
+  if (n % 100 === 0 || n >= 100) {
     return Math.random() < CENTURY_SPIN_WEIGHTS[45] ? 45 : 50;
   }
 

@@ -1278,11 +1278,6 @@ export const StampCard = ({
                                   <CheckCircle size={12} />
                                   <span>Guaranteed Discount: {coupon.discountPercent ? `${coupon.discountPercent}% OFF` : coupon.discountType}</span>
                                 </span>
-                                {coupon.spinNumber && (
-                                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                                    (Spin #{coupon.spinNumber})
-                                  </span>
-                                )}
                               </div>
                             )}
                             {coupon.isExpiringSoon || (coupon.daysRemaining !== undefined && coupon.daysRemaining <= 5) ? (

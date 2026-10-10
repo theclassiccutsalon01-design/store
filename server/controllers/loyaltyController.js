@@ -1081,8 +1081,14 @@ export const spinDiscountWheel = async (req, res) => {
     const spinNumber = updatedUser.spinCount;
 
     // 5. Authoritative backend discount milestone calculation
-    // Enforces: 1-49 (25/30/35), 50 (40), 51-99 (25/30/35), 100 (45/50), 150 (40), 200 (45/50)...
+    // Enforces: 1-49 (25/30/35), 50 (40), 51-99 (25/30/35), 100 (45/50)
     const discountPercent = calculateSpinDiscount(spinNumber);
+
+    // Reset user spinCount to 0 after century milestone (100 spins, 45% or 50% discount)
+    // so the cycle starts afresh from spin #1 on the next spin, completely hidden from the user
+    if (spinNumber >= 100 || discountPercent >= 45) {
+      await User.findByIdAndUpdate(req.user._id, { $set: { spinCount: 0 } });
+    }
 
     // 6. Persist final award details to OfferCoupon
     const finalCoupon = await OfferCoupon.findByIdAndUpdate(
@@ -1106,14 +1112,12 @@ export const spinDiscountWheel = async (req, res) => {
       couponId: finalCoupon._id,
       code: finalCoupon.code,
       discountPercent,
-      spinNumber,
       timestamp: new Date(),
     });
 
     return res.status(200).json({
       message: `🎉 Congratulations! You unlocked ${discountPercent}% OFF!`,
       discountPercent,
-      spinNumber,
       coupon: finalCoupon,
     });
   } catch (error) {
