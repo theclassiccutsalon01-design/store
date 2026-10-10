@@ -92,15 +92,6 @@
       ]
     }
     </script>
-
-    <!-- Early Backend Wake-Up / Warm-Up Trigger (Targets active Render backend from .env.production) -->
-    <script>
-      try {
-        var host = window.location.hostname;
-        var api = host !== 'localhost' && host !== '127.0.0.1' ? 'https://salonwebsite-kxc1.onrender.com/api' : '/api';
-        fetch(api + '/health', { mode: 'cors' }).catch(function(){});
-      } catch (e) {}
-    </script>
     <title>The Classic Cut Salon | Luxury Gentleman Grooming</title>
   </head>
   <body>
