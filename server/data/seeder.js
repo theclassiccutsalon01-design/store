@@ -38,12 +38,12 @@ export const seedInitialData = async () => {
       }
     }
 
-    // Ensure previous developer admin ok8023361@gmail.com is demoted to user
+    // Ensure previous developer account ok8023361@gmail.com does not retain legacy superadmin role
     const previousAdmin = await User.findOne({ email: 'ok8023361@gmail.com' });
-    if (previousAdmin && (previousAdmin.role === 'superadmin' || previousAdmin.role === 'admin')) {
+    if (previousAdmin && previousAdmin.role === 'superadmin') {
       previousAdmin.role = 'user';
       await previousAdmin.save();
-      console.log('✅ Demoted ok8023361@gmail.com to regular customer user role');
+      console.log('✅ Demoted ok8023361@gmail.com legacy superadmin role to regular customer user role');
     }
 
     // 2. Seed Site Config if none exists

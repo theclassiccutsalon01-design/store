@@ -5,15 +5,28 @@ import { broadcastRealtimeEvent } from '../services/realtimeService.js';
 // 1. Super Admin: Get All Admins & Staff
 export const getAllStaffAdmins = async (req, res) => {
   try {
+    const ownerEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+
     const staff = await User.find({
-      role: { $in: ['admin', 'superadmin'] },
+      $or: [
+        { role: { $in: ['admin', 'superadmin'] } },
+        { email: ownerEmail },
+      ],
       isDeleted: { $ne: true },
     })
       .select('-password')
       .sort({ role: -1, createdAt: -1 })
       .lean();
 
-    res.status(200).json(staff);
+    // Ensure the primary owner always has role 'superadmin' reflected
+    const sanitizedStaff = staff.map((s) => {
+      if (s.email.toLowerCase() === ownerEmail) {
+        return { ...s, role: 'superadmin' };
+      }
+      return s;
+    });
+
+    res.status(200).json(sanitizedStaff);
   } catch (error) {
     console.error('Get Staff Error:', error);
     res.status(500).json({ message: 'Failed to fetch staff admins' });
@@ -30,6 +43,13 @@ export const addStaffAdmin = async (req, res) => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const ownerEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+
+    if (cleanEmail === ownerEmail) {
+      return res.status(400).json({
+        message: 'The Primary Salon Owner is already Super Admin.',
+      });
+    }
 
     // The user MUST already be an existing registered user
     const existing = await User.findOne({ email: cleanEmail });
@@ -45,9 +65,9 @@ export const addStaffAdmin = async (req, res) => {
       });
     }
 
-    if (existing.role === 'admin' || existing.role === 'superadmin') {
+    if (existing.role === 'admin' || (existing.role === 'superadmin' && cleanEmail !== ownerEmail)) {
       return res.status(400).json({
-        message: `${existing.name} (${existing.email}) is already an ${existing.role === 'superadmin' ? 'Super Admin' : 'Admin'}!`,
+        message: `${existing.name} (${existing.email}) is already an Admin!`,
       });
     }
 
@@ -89,25 +109,33 @@ export const deleteStaffAdmin = async (req, res) => {
       return res.status(404).json({ message: 'Admin account not found' });
     }
 
-    // Protection: Super Admin can NEVER be deleted or demoted
-    const configuredAdminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase().trim() : null;
-    if (
-      targetAdmin.role === 'superadmin' ||
-      (configuredAdminEmail && targetAdmin.email.toLowerCase() === configuredAdminEmail)
-    ) {
+    // Determine the Primary Salon Owner (Super Admin)
+    const ownerEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+
+    // Protection 1: The Primary Salon Owner (Suraj Raut / theclassiccutsalon01@gmail.com) can NEVER be deleted or demoted
+    if (targetAdmin.email.toLowerCase() === ownerEmail) {
       return res.status(403).json({
-        message: 'Forbidden: The Super Admin account is protected and cannot be deleted or demoted!',
+        message: 'Forbidden: The Primary Salon Owner account is protected and cannot be deleted or demoted!',
       });
     }
 
-    // Protection: Cannot demote own account (self-demotion prevention)
+    // Protection 2: Cannot demote own account (self-demotion prevention)
     if (targetAdmin._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: 'You cannot demote or remove your own admin account.' });
     }
 
-    // Role check: Only accounts with role 'admin' can be demoted via this staff endpoint
-    if (targetAdmin.role !== 'admin') {
-      return res.status(400).json({ message: 'Target account is not an admin staff member.' });
+    // If target account is already 'user', ensure state and return success gracefully
+    if (targetAdmin.role === 'user') {
+      broadcastRealtimeEvent({ type: 'ADMIN_LIST_CHANGED' });
+      return res.status(200).json({
+        message: `Account ${targetAdmin.name} (${targetAdmin.email}) is already a standard customer user.`,
+        user: {
+          _id: targetAdmin._id,
+          name: targetAdmin.name,
+          email: targetAdmin.email,
+          role: 'user',
+        },
+      });
     }
 
     const adminName = targetAdmin.name;
@@ -121,7 +149,7 @@ export const deleteStaffAdmin = async (req, res) => {
     broadcastRealtimeEvent({ type: 'ADMIN_LIST_CHANGED' });
 
     res.status(200).json({
-      message: `Admin ${adminName} (${adminEmail}) was successfully demoted to customer role.`,
+      message: `Admin ${adminName} (${adminEmail}) was successfully removed from Admin Staff and demoted to customer role.`,
       user: {
         _id: targetAdmin._id,
         name: targetAdmin.name,

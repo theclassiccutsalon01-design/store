@@ -224,10 +224,10 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Ensure admin role if matches configured admin email
-    const configuredAdminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase().trim() : null;
-    if (configuredAdminEmail && cleanEmail === configuredAdminEmail && user.role !== 'admin' && user.role !== 'superadmin') {
-      user.role = 'admin';
+    // Ensure owner has superadmin role if matches configured admin email
+    const configuredAdminEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+    if (cleanEmail === configuredAdminEmail && user.role !== 'superadmin') {
+      user.role = 'superadmin';
     }
 
     // If customer account was in deleted state, allow login but restart Coupon Stamps from 0
@@ -285,9 +285,9 @@ export const googleAuth = async (req, res) => {
     const { email, name, sub: googleId } = payload;
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check if user is configured as Admin via environment variable
-    const configuredAdminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase().trim() : null;
-    const isAdmin = Boolean(configuredAdminEmail && cleanEmail === configuredAdminEmail);
+    // Check if user is configured as Salon Owner via environment variable
+    const configuredAdminEmail = (process.env.ADMIN_EMAIL || 'theclassiccutsalon01@gmail.com').toLowerCase().trim();
+    const isOwner = Boolean(cleanEmail === configuredAdminEmail);
 
     let user = await User.findOne({ email: cleanEmail });
     const isNewUser = !user;
@@ -298,13 +298,13 @@ export const googleAuth = async (req, res) => {
         name: name || 'Valued Guest',
         email: cleanEmail,
         googleId,
-        role: isAdmin ? 'admin' : 'user',
+        role: isOwner ? 'superadmin' : 'user',
         isVerified: true,
       });
     } else {
-      // Ensure admin privileges if email matches admin
-      if (isAdmin && user.role !== 'admin') {
-        user.role = 'admin';
+      // Ensure superadmin privileges if email matches owner
+      if (isOwner && user.role !== 'superadmin') {
+        user.role = 'superadmin';
       }
       if (!user.googleId) {
         user.googleId = googleId;

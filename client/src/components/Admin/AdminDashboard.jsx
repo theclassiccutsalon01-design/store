@@ -33,6 +33,7 @@ import {
   Shield,
   Bell,
   Calendar,
+  Scissors,
 } from 'lucide-react';
 
 const PaginationControl = ({
@@ -2378,7 +2379,8 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                       </thead>
                       <tbody>
                         {staffList.map((st) => {
-                          const isTargetSuper = st.role === 'superadmin';
+                          const isOwnerAccount = (st.email || '').toLowerCase() === 'theclassiccutsalon01@gmail.com';
+                          const isTargetSuper = st.role === 'superadmin' || isOwnerAccount;
                           const isSelf = user?._id === st._id;
                           return (
                             <tr
@@ -2436,7 +2438,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                                 )}
                               </td>
                               <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
-                                {isTargetSuper ? (
+                                {isOwnerAccount ? (
                                   <span style={{ fontSize: '0.74rem', color: 'var(--gold-primary)', fontStyle: 'italic', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <Lock size={12} /> Protected Owner
                                   </span>
@@ -2475,7 +2477,8 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                   {/* Mobile Cards for Staff Admins */}
                   <div className="admin-mobile-cards">
                     {staffList.map((st) => {
-                      const isTargetSuper = st.role === 'superadmin';
+                      const isOwnerAccount = (st.email || '').toLowerCase() === 'theclassiccutsalon01@gmail.com';
+                      const isTargetSuper = st.role === 'superadmin' || isOwnerAccount;
                       const isSelf = user?._id === st._id;
                       return (
                         <div
@@ -2510,7 +2513,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                               </span>
                             )}
                           </div>
-                          {!isTargetSuper && !isSelf && (
+                          {!isOwnerAccount && !isSelf && (
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.35rem' }}>
                               <button
                                 type="button"
@@ -2528,7 +2531,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                                 }}
                               >
                                 <Trash2 size={13} />
-                                <span>Remove Admin</span>
+                                <span>Remove</span>
                               </button>
                             </div>
                           )}
