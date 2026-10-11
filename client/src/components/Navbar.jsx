@@ -637,7 +637,7 @@ export const Navbar = ({ onOpenAuth, onOpenAdmin, onOpenLoyalty, onOpenProfile }
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.2rem' }}>
                     <Clock size={12} color="var(--gold-primary)" />
-                    <span>{config.openingHours?.weekday || '9:00 AM - 9:30 PM'}</span>
+                    <span>{config.openingHours?.weekday || 'Tuesday to Friday: 9:30 AM - 9:00 PM'}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <MapPin size={12} color="var(--gold-primary)" />

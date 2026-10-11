@@ -27,6 +27,9 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
   const videoRef = useRef(null);
   const audioRef = useRef(null);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+  const [isMobileDevice] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  });
 
   // 1. Video Playback optimization
   useEffect(() => {
@@ -106,32 +109,34 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
         backgroundPosition: 'center',
       }}
     >
-      {/* 1. Crystal Clear Background Video with Instant Luxury Poster */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="none"
-        poster="/backgrounds/imgi_394_1000_F_675403262_HTWy014WRCcGlggsScfGJP0fYNZHbOYr.webp"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          opacity: 1,
-          filter: 'contrast(1.05) brightness(1.02)',
-          zIndex: 1,
-          transition: 'opacity 0.4s ease',
-          pointerEvents: 'none',
-        }}
-        src={(!config.heroVideoUrl || config.heroVideoUrl === '/video1.mp4' || config.heroVideoUrl === '/backgroundvideo.mp4' || config.heroVideoUrl === '/video/backgroundvideo.mp4') ? '/video/salon-hero-video.mp4?v=20261010' : config.heroVideoUrl}
-      >
-        <source src="/video/salon-hero-video.mp4?v=20261010" type="video/mp4" />
-      </video>
+      {/* 1. Crystal Clear Background Video on Desktop/Laptop (Mobile uses 28KB HD WebP poster) */}
+      {!isMobileDevice && (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
+          poster="/backgrounds/imgi_394_1000_F_675403262_HTWy014WRCcGlggsScfGJP0fYNZHbOYr.webp"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 1,
+            filter: 'contrast(1.05) brightness(1.02)',
+            zIndex: 1,
+            transition: 'opacity 0.4s ease',
+            pointerEvents: 'none',
+          }}
+          src={(!config.heroVideoUrl || config.heroVideoUrl === '/video1.mp4' || config.heroVideoUrl === '/backgroundvideo.mp4' || config.heroVideoUrl === '/video/backgroundvideo.mp4') ? '/video/salon-hero-video.mp4?v=20261010' : config.heroVideoUrl}
+        >
+          <source src="/video/salon-hero-video.mp4?v=20261010" type="video/mp4" />
+        </video>
+      )}
 
       {/* 2. Matching Luxury Background Music (Optimized preload: none to save initial bandwidth) */}
       <audio
@@ -399,6 +404,8 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                   borderRadius: '2px',
                   animation: 'soundBar 0.8s ease-in-out infinite alternate',
                   height: '100%',
+                  transformOrigin: 'bottom',
+                  willChange: 'transform',
                 }}
               />
               <span
@@ -407,7 +414,9 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                   background: 'var(--gold-primary)',
                   borderRadius: '2px',
                   animation: 'soundBar 0.6s ease-in-out 0.2s infinite alternate',
-                  height: '60%',
+                  height: '100%',
+                  transformOrigin: 'bottom',
+                  willChange: 'transform',
                 }}
               />
               <span
@@ -416,7 +425,9 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
                   background: 'var(--gold-primary)',
                   borderRadius: '2px',
                   animation: 'soundBar 1s ease-in-out 0.4s infinite alternate',
-                  height: '80%',
+                  height: '100%',
+                  transformOrigin: 'bottom',
+                  willChange: 'transform',
                 }}
               />
             </span>

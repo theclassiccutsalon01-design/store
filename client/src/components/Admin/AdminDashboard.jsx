@@ -245,6 +245,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   // CMS Form state
   const [cmsForm, setCmsForm] = useState({ ...config });
+  const [cmsSaveLoading, setCmsSaveLoading] = useState(false);
 
   // Recovery / Deleted Customers state
   const [deletedCustomers, setDeletedCustomers] = useState([]);
@@ -752,12 +753,16 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   // 4. Save CMS Configuration
   const handleSaveCms = async (e) => {
     e.preventDefault();
+    setCmsSaveLoading(true);
     try {
       await updateConfig(cmsForm);
       setFeedback({ type: 'success', msg: 'Salon website configuration updated live!' });
       refreshConfig();
     } catch (err) {
-      setFeedback({ type: 'error', msg: 'Failed to update CMS' });
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to update CMS';
+      setFeedback({ type: 'error', msg: errorMsg });
+    } finally {
+      setCmsSaveLoading(false);
     }
   };
 
@@ -1514,6 +1519,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                           background: 'linear-gradient(90deg, transparent, #ffd700, #ffffff, #ffd700, transparent)',
                           boxShadow: '0 0 12px #ffd700',
                           animation: 'laserScan 2.4s ease-in-out infinite',
+                          willChange: 'transform',
                           pointerEvents: 'none',
                         }}
                       />
@@ -1970,23 +1976,29 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
                 {/* Phone */}
                 <div className="input-group">
-                  <label className="input-label">Phone Number (Calling)</label>
+                  <label className="input-label" htmlFor="cms_phone">Phone Number (Calling)</label>
                   <input
+                    id="cms_phone"
+                    name="cms_phone"
                     type="text"
+                    autoComplete="off"
                     className="input-field"
                     value={cmsForm.phone || ''}
-                    onChange={(e) => setCmsForm({ ...cmsForm, phone: e.target.value })}
+                    onChange={(e) => setCmsForm((prev) => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
 
                 {/* WhatsApp */}
                 <div className="input-group">
-                  <label className="input-label">WhatsApp Number</label>
+                  <label className="input-label" htmlFor="cms_whatsapp">WhatsApp Number</label>
                   <input
+                    id="cms_whatsapp"
+                    name="cms_whatsapp"
                     type="text"
+                    autoComplete="off"
                     className="input-field"
                     value={cmsForm.whatsapp || ''}
-                    onChange={(e) => setCmsForm({ ...cmsForm, whatsapp: e.target.value })}
+                    onChange={(e) => setCmsForm((prev) => ({ ...prev, whatsapp: e.target.value }))}
                   />
                 </div>
 
@@ -2032,10 +2044,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     className="input-field"
                     value={cmsForm.openingHours?.weekday || ''}
                     onChange={(e) =>
-                      setCmsForm({
-                        ...cmsForm,
-                        openingHours: { ...cmsForm.openingHours, weekday: e.target.value },
-                      })
+                      setCmsForm((prev) => ({
+                        ...prev,
+                        openingHours: { ...(prev.openingHours || {}), weekday: e.target.value },
+                      }))
                     }
                   />
                 </div>
@@ -2048,10 +2060,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     className="input-field"
                     value={cmsForm.openingHours?.weekend || ''}
                     onChange={(e) =>
-                      setCmsForm({
-                        ...cmsForm,
-                        openingHours: { ...cmsForm.openingHours, weekend: e.target.value },
-                      })
+                      setCmsForm((prev) => ({
+                        ...prev,
+                        openingHours: { ...(prev.openingHours || {}), weekend: e.target.value },
+                      }))
                     }
                   />
                 </div>
@@ -2065,10 +2077,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     placeholder="CLOSED (Shop is closed on every Monday)"
                     value={cmsForm.openingHours?.monday || ''}
                     onChange={(e) =>
-                      setCmsForm({
-                        ...cmsForm,
-                        openingHours: { ...cmsForm.openingHours, monday: e.target.value },
-                      })
+                      setCmsForm((prev) => ({
+                        ...prev,
+                        openingHours: { ...(prev.openingHours || {}), monday: e.target.value },
+                      }))
                     }
                   />
                 </div>
@@ -2097,9 +2109,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               </div>
 
               <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" disabled={cmsSaveLoading} style={{ opacity: cmsSaveLoading ? 0.7 : 1 }}>
                   <Save size={16} />
-                  <span>Save Website CMS Changes</span>
+                  <span>{cmsSaveLoading ? 'Updating Live Website...' : 'Save Website CMS Changes'}</span>
                 </button>
               </div>
             </form>

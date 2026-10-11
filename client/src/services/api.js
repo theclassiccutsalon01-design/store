@@ -4,6 +4,9 @@ const getBaseUrl = () => {
   let url = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).trim() : '';
 
   if (!url) {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return 'https://the-classic-cut-salon-api.onrender.com/api';
+    }
     return '/api';
   }
 

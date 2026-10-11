@@ -82,13 +82,13 @@ export const Footer = ({ onOpenAdminLogin }) => {
               Salon Hours & Contact
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #D2CFC9)', marginBottom: '0.25rem' }}>
-              <strong style={{ color: 'var(--gold-primary)' }}>Tue – Fri:</strong> 9:30 AM – 9:00 PM
+              <strong style={{ color: 'var(--gold-primary)' }}>Weekday:</strong> {config.openingHours?.weekday || 'Tuesday to Friday: 9:30 AM - 9:00 PM'}
             </p>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #D2CFC9)', marginBottom: '0.35rem' }}>
-              <strong style={{ color: 'var(--gold-primary)' }}>Sat – Sun:</strong> 8:30 AM – 10:00 PM
+              <strong style={{ color: 'var(--gold-primary)' }}>Weekend:</strong> {config.openingHours?.weekend || 'Saturday & Sunday: 8:30 AM - 10:00 PM'}
             </p>
             <p style={{ fontSize: '0.8rem', color: '#fca5a5', fontWeight: 600, marginBottom: '0.6rem' }}>
-              🔴 Monday: CLOSED (Shop is closed on every Monday)
+              🔴 {config.openingHours?.monday || 'CLOSED (Shop is closed on every Monday)'}
             </p>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>
               📧 <a href={`mailto:${config.email || 'theclassiccutsalon01@gmail.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{config.email || 'theclassiccutsalon01@gmail.com'}</a>
