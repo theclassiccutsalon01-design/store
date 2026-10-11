@@ -22,6 +22,7 @@ function serveCustomAssetFolders() {
               filePath = path.join(__dirname, folder, relPath);
             }
             if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+              const stat = fs.statSync(filePath);
               const ext = path.extname(filePath).toLowerCase();
               const mimeMap = {
                 '.glb': 'model/gltf-binary',
@@ -37,7 +38,15 @@ function serveCustomAssetFolders() {
                 '.mpeg': 'audio/mpeg',
               };
               res.setHeader('Content-Type', mimeMap[ext] || 'application/octet-stream');
-              return fs.createReadStream(filePath).pipe(res);
+              res.setHeader('Content-Length', stat.size);
+              res.setHeader('Accept-Ranges', 'bytes');
+              res.setHeader('Cache-Control', 'public, max-age=86400');
+              const stream = fs.createReadStream(filePath);
+              stream.on('error', () => {
+                if (!res.headersSent) res.writeHead(500);
+                res.end();
+              });
+              return stream.pipe(res);
             }
           }
         }

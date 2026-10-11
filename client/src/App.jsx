@@ -4,6 +4,7 @@ import { SiteConfigProvider, useSiteConfig } from './context/SiteConfigContext';
 import { SmoothScrollProvider, useSmoothScroll } from './context/SmoothScrollContext';
 import { Navbar } from './components/Navbar';
 import { HeroVideo } from './components/HeroVideo';
+import { Salon3DExperience } from './components/Salon3DExperience';
 import { ModernServicesExperience } from './components/ModernServicesExperience';
 import { LocationContact } from './components/LocationContact';
 import { Footer } from './components/Footer';
@@ -76,7 +77,13 @@ const MainContent = ({ isLoading }) => {
         isReady={!isLoading}
       />
 
-      {/* 3. Modern Services Experience (Scalloped canopy, Scissor ribbon headline, 8 Pop Shapes, 3 Vibrant Cards, and Extra Atelier Art) */}
+      {/* 3. Interactive 3D Atelier Studio */}
+      <Salon3DExperience
+        onScrollToServices={scrollToServices}
+        onOpenLoyalty={() => handleOpenLoyalty('stamps')}
+      />
+
+      {/* 4. Modern Services Experience (Scalloped canopy, Scissor ribbon headline, 8 Pop Shapes, 3 Vibrant Cards, and Extra Atelier Art) */}
       <ModernServicesExperience />
 
       {/* 4. Salon Location, Hours & WhatsApp Desk */}

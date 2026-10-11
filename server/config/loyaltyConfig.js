@@ -74,9 +74,34 @@ export const SERVICE_EXPIRY_CONFIG = {
     ms: 45 * 24 * 60 * 60 * 1000,
     label: 'Haircut Only (Valid for 45 Days)',
   },
+  'Haircut': {
+    days: 45,
+    ms: 45 * 24 * 60 * 60 * 1000,
+    label: 'Haircut (Valid for 45 Days)',
+  },
 };
 
 export const ALLOWED_SERVICE_TYPES = Object.keys(SERVICE_EXPIRY_CONFIG);
+
+/**
+ * Helper to determine policy duration for any service type or visit.
+ * Beard -> 25 days, Haircut + Beard -> 25 days, Haircut / Haircut Only -> 45 days.
+ */
+export const getPolicyDaysForService = (serviceType, serviceName = '') => {
+  const type = String(serviceType || '').toLowerCase().trim();
+  const name = String(serviceName || '').toLowerCase().trim();
+  if (
+    type === 'beard' ||
+    type.includes('haircut + beard') ||
+    type.includes('haircut+beard') ||
+    name.includes('haircut + beard') ||
+    name.includes('haircut+beard') ||
+    name.includes('beard')
+  ) {
+    return 25;
+  }
+  return 45;
+};
 
 /**
  * Authoritatively calculates expiry date from server timestamp and service type.
@@ -87,10 +112,11 @@ export const ALLOWED_SERVICE_TYPES = Object.keys(SERVICE_EXPIRY_CONFIG);
  * @returns {{ expiresAt: Date, days: number }}
  */
 export const calculateStampExpiry = (serviceType, baseDate = new Date()) => {
-  if (!serviceType || !SERVICE_EXPIRY_CONFIG[serviceType]) {
+  const normalizedType = serviceType === 'Haircut' ? 'Haircut' : serviceType;
+  if (!normalizedType || !SERVICE_EXPIRY_CONFIG[normalizedType]) {
     throw new Error(`Invalid service type "${serviceType}". Must be one of: ${ALLOWED_SERVICE_TYPES.join(', ')}`);
   }
-  const config = SERVICE_EXPIRY_CONFIG[serviceType];
+  const config = SERVICE_EXPIRY_CONFIG[normalizedType];
   const expiresAt = new Date(baseDate.getTime() + config.ms);
   return {
     expiresAt,

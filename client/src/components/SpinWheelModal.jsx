@@ -104,7 +104,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
         position: 'fixed',
         inset: 0,
         zIndex: 999999,
-        background: 'rgba(5, 7, 12, 0.92)',
+        background: 'rgba(18, 18, 18, 0.88)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         display: 'flex',
@@ -160,7 +160,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
               <Sparkles size={12} />
               <span>VIP Discount Spin Wheel</span>
             </span>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0.1rem 0 0 0', color: '#ffffff' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0.1rem 0 0 0', color: 'var(--color-cream, #F9F8F6)' }}>
               Spin For Your <span className="gold-text">Grooming Discount</span>
             </h3>
           </div>
@@ -176,7 +176,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: '#ffffff',
+              color: 'var(--color-cream, #F9F8F6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -222,7 +222,7 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
           }}
         >
           <Gift size={13} color="var(--gold-primary, #D4AF37)" />
-          <span style={{ color: '#cbd5e1' }}>Eligible Coupon:</span>
+          <span style={{ color: 'var(--text-secondary, #D2CFC9)' }}>Eligible Coupon:</span>
           <strong style={{ fontFamily: 'monospace', color: 'var(--gold-primary, #D4AF37)', letterSpacing: '0.06em' }}>
             {coupon.code}
           </strong>
@@ -435,10 +435,10 @@ export const SpinWheelModal = ({ isOpen, onClose, coupon, onSpinSuccess }) => {
             <div style={{ display: 'inline-flex', padding: '0.35rem', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.2)', marginBottom: '0.35rem' }}>
               <Trophy size={22} color="var(--gold-primary, #D4AF37)" />
             </div>
-            <h4 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.2rem 0', color: '#ffffff' }}>
+            <h4 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.2rem 0', color: 'var(--color-cream, #F9F8F6)' }}>
               🎉 You Won <span className="gold-text">{result.percent}% OFF</span>!
             </h4>
-            <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: '0 0 0.75rem 0', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #D2CFC9)', margin: '0 0 0.75rem 0', lineHeight: 1.4 }}>
               Your coupon code <strong>{result.coupon?.code || coupon.code}</strong> is now loaded with a guaranteed {result.percent}% discount!
             </p>
 

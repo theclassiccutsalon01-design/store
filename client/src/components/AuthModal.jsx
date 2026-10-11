@@ -379,7 +379,7 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             borderRadius: '50%',
             background: 'rgba(255, 255, 255, 0.08)',
             border: '1px solid rgba(255, 255, 255, 0.16)',
-            color: '#ffffff',
+            color: 'var(--color-cream, #F9F8F6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

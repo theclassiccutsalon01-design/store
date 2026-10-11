@@ -765,7 +765,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         <div
           className="figure-card-bounce"
           style={{
-            background: 'rgba(12, 15, 22, 0.94)',
+            background: 'rgba(26, 26, 26, 0.95)',
             border: '1.5px solid var(--gold-primary)',
             borderRadius: '12px',
             padding: '0.45rem 0.65rem',
@@ -796,7 +796,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             <div style={{ fontSize: '0.62rem', color: 'var(--gold-primary)', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               Royal Atelier Spec
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-cream, #F9F8F6)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {currentStage.blueprintTitle ? currentStage.blueprintTitle.replace('2026 Trend: ', '') : '2026 Fade Spec'}
             </div>
           </div>
@@ -812,7 +812,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             })}
             className="figure-card-bounce blueprint-card-hover"
             style={{
-              background: 'rgba(14, 18, 26, 0.95)',
+              background: 'rgba(34, 34, 34, 0.95)',
               border: '1.5px solid rgba(212, 175, 55, 0.45)',
               borderRadius: '14px',
               overflow: 'hidden',
@@ -842,7 +842,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'linear-gradient(to bottom, transparent 40%, rgba(14, 18, 26, 0.95) 100%)',
+                  background: 'linear-gradient(to bottom, transparent 40%, rgba(34, 34, 34, 0.95) 100%)',
                 }}
               />
               <div
@@ -866,10 +866,10 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
               </div>
             </div>
             <div style={{ padding: '0.45rem 0.6rem 0.55rem' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.25, marginBottom: '0.15rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-cream, #F9F8F6)', lineHeight: 1.25, marginBottom: '0.15rem' }}>
                 {currentStage.blueprintTitle}
               </div>
-              <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted, #9E9A92)' }}>
                 {currentStage.blueprintSubtitle}
               </div>
             </div>
@@ -880,7 +880,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         <div
           className="figure-card-bounce"
           style={{
-            background: 'rgba(12, 15, 22, 0.92)',
+            background: 'rgba(26, 26, 26, 0.95)',
             border: '1px solid rgba(212, 175, 55, 0.35)',
             borderRadius: '12px',
             padding: '0.5rem 0.65rem',
@@ -910,7 +910,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             <div style={{ fontSize: '0.62rem', color: 'var(--gold-primary)', fontWeight: 700 }}>
               {currentStage.leftTitle}
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#cbd5e1', lineHeight: 1.25 }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary, #D2CFC9)', lineHeight: 1.25 }}>
               {currentStage.leftText}
             </div>
           </div>
@@ -946,7 +946,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
           })}
           className="figure-card-bounce blueprint-card-hover"
           style={{
-            background: 'rgba(12, 15, 22, 0.94)',
+            background: 'rgba(26, 26, 26, 0.95)',
             border: '1.5px solid var(--gold-primary)',
             borderRadius: '12px',
             padding: '0.45rem 0.65rem',
@@ -979,7 +979,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             <div style={{ fontSize: '0.62rem', color: 'var(--gold-primary)', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               Artisan Studio
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-cream, #F9F8F6)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Try A Different Style 💈
             </div>
           </div>
@@ -989,7 +989,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         <div
           className="figure-card-bounce"
           style={{
-            background: 'rgba(14, 18, 26, 0.95)',
+            background: 'rgba(34, 34, 34, 0.95)',
             border: '1.5px solid rgba(212, 175, 55, 0.45)',
             borderRadius: '14px',
             padding: '0.65rem',
@@ -1018,12 +1018,12 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
               <div style={{ fontSize: '0.64rem', color: 'var(--gold-primary)', fontWeight: 800, textTransform: 'uppercase' }}>
                 {currentStage.rightTitle}
               </div>
-              <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted, #9E9A92)' }}>
                 Senior Stylist Craft
               </div>
             </div>
           </div>
-          <p style={{ fontSize: '0.72rem', color: '#e2e8f0', margin: 0, lineHeight: 1.35, background: 'rgba(7, 8, 11, 0.65)', padding: '0.45rem 0.55rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #D2CFC9)', margin: 0, lineHeight: 1.35, background: 'rgba(26, 26, 26, 0.85)', padding: '0.45rem 0.55rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
             "{currentStage.rightText}"
           </p>
         </div>
@@ -1037,7 +1037,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
           })}
           className="figure-card-bounce blueprint-card-hover"
           style={{
-            background: 'rgba(12, 15, 22, 0.92)',
+            background: 'rgba(26, 26, 26, 0.95)',
             border: '1px solid rgba(212, 175, 55, 0.35)',
             borderRadius: '12px',
             padding: '0.5rem 0.65rem',
@@ -1101,7 +1101,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
         <div
           className="mobile-figure-bounce"
           style={{
-            background: 'rgba(11, 14, 20, 0.94)',
+            background: 'rgba(26, 26, 26, 0.94)',
             border: '1px solid var(--gold-primary)',
             padding: '0.35rem 0.75rem',
             borderRadius: 'var(--radius-full)',
@@ -1112,7 +1112,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
           <div style={{ fontSize: '0.62rem', color: 'var(--gold-primary)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {currentStage.leftTitle}
           </div>
-          <div style={{ fontSize: '0.68rem', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '0.68rem', color: 'var(--color-cream, #F9F8F6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {currentStage.leftText}
           </div>
         </div>
@@ -1286,7 +1286,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                   borderRadius: 'var(--radius-lg)',
                   border: '2px solid var(--gold-primary)',
                   boxShadow: '0 20px 50px rgba(0, 0, 0, 0.92), 0 0 30px rgba(212, 175, 55, 0.18)',
-                  background: 'linear-gradient(145deg, #111522 0%, #080b11 100%)',
+                  background: 'linear-gradient(145deg, #242424 0%, #1A1A1A 100%)',
                   position: 'relative',
                   overflow: 'hidden',
                   zIndex: 10,
@@ -1327,7 +1327,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                       style={{
                         fontSize: '0.72rem',
                         color: 'var(--gold-primary)',
-                        background: 'rgba(7, 8, 11, 0.88)',
+                        background: 'rgba(26, 26, 26, 0.88)',
                         padding: '0.22rem 0.65rem',
                         borderRadius: 'var(--radius-full)',
                         border: '1px solid rgba(212, 175, 55, 0.4)',
@@ -1396,7 +1396,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'radial-gradient(circle at center, rgba(7, 8, 11, 0.1) 0%, rgba(7, 8, 11, 0.55) 100%)',
+                        background: 'radial-gradient(circle at center, rgba(26, 26, 26, 0.1) 0%, rgba(26, 26, 26, 0.65) 100%)',
                         zIndex: 2,
                       }}
                     />
@@ -1433,7 +1433,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                         position: 'absolute',
                         top: '0.65rem',
                         right: '0.65rem',
-                        background: 'rgba(11, 14, 22, 0.92)',
+                        background: 'rgba(26, 26, 26, 0.94)',
                         border: '1px solid var(--gold-primary)',
                         color: 'var(--gold-primary)',
                         padding: '0.18rem 0.6rem',
@@ -1455,7 +1455,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                         position: 'absolute',
                         bottom: '0.65rem',
                         left: '0.65rem',
-                        background: 'rgba(7, 9, 14, 0.88)',
+                        background: 'rgba(26, 26, 26, 0.94)',
                         border: '1px solid rgba(212, 175, 55, 0.6)',
                         backdropFilter: 'blur(8px)',
                         color: 'var(--gold-primary)',
@@ -1837,7 +1837,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
           max-width: 480px;
           margin: 1.15rem auto 0;
           padding: 0.45rem 0.85rem;
-          background: rgba(10, 13, 20, 0.95);
+          background: rgba(26, 26, 26, 0.95);
           border: 1.5px solid rgba(212, 175, 55, 0.4);
           border-radius: var(--radius-full);
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.92), 0 0 20px rgba(212, 175, 55, 0.15);
@@ -2099,7 +2099,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            background: 'rgba(4, 6, 10, 0.9)',
+            background: 'rgba(18, 18, 18, 0.92)',
             backdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
@@ -2111,7 +2111,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#0c0f16',
+              background: '#1A1A1A',
               border: '2px solid var(--gold-primary)',
               borderRadius: '20px',
               maxWidth: '480px',
@@ -2132,14 +2132,14 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'rgba(18, 22, 32, 0.95)',
+                background: 'rgba(34, 34, 34, 0.95)',
               }}
             >
               <div>
                 <h3 style={{ fontSize: '0.98rem', color: 'var(--gold-primary)', margin: 0, fontWeight: 700 }}>
                   {lightboxImage.title}
                 </h3>
-                <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
+                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted, #9E9A92)', margin: '0.2rem 0 0' }}>
                   {lightboxImage.subtitle}
                 </p>
               </div>
@@ -2148,7 +2148,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 style={{
                   background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
+                  color: 'var(--color-cream, #F9F8F6)',
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
@@ -2164,7 +2164,7 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
             </div>
 
             {/* Modal Image */}
-            <div style={{ padding: '0.75rem', textAlign: 'center', background: '#05070a', overflow: 'auto', maxHeight: '62vh' }}>
+            <div style={{ padding: '0.75rem', textAlign: 'center', background: '#141414', overflow: 'auto', maxHeight: '62vh' }}>
               <img
                 src={lightboxImage.url}
                 alt={lightboxImage.title}
@@ -2189,10 +2189,10 @@ export const HairCutScrollShowcase = ({ onOpenLoyalty, onOpenAdmin }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.75rem',
-                background: 'rgba(18, 22, 32, 0.95)',
+                background: 'rgba(34, 34, 34, 0.95)',
               }}
             >
-              <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #D2CFC9)' }}>
                 Want this exact fade & cut?
               </span>
               <a

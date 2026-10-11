@@ -15,13 +15,14 @@ export const Hero3DCanvas = ({ isReady = true }) => {
   const maxDimRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const getResponsiveScale = () => {
     const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
-    if (w < 480) return 2.3;  // Compact on mobile phones
-    if (w < 768) return 2.6;  // Tablets / Large phones
-    if (w < 1024) return 2.9; // Small laptops
-    return 3.2;               // Desktops
+    if (w < 480) return 1.68;  // Mobile: Adjusted cleanly inside box with headroom and chin clearance
+    if (w < 768) return 1.72;  // Tablet
+    if (w < 1024) return 1.76; // Small laptops
+    return 1.75;               // Desktop: Scaled down to fit box gracefully with elegant margins
   };
 
   useEffect(() => {
@@ -33,32 +34,50 @@ export const Hero3DCanvas = ({ isReady = true }) => {
 
     const capabilities = getDeviceCapabilities();
     const isMobile = window.innerWidth < 768;
-    const width = container.clientWidth || (window.innerWidth < 480 ? 210 : isMobile ? 260 : 460);
-    const height = container.clientHeight || (window.innerWidth < 480 ? 190 : isMobile ? 240 : 400);
+    const isSmallMobile = window.innerWidth < 480;
+    const width = container.clientWidth || (isSmallMobile ? 320 : isMobile ? 360 : 460);
+    const height = container.clientHeight || (isSmallMobile ? 340 : isMobile ? 360 : 400);
 
-    // 1. Scene & Camera
+    // 1. Scene & Camera - Perfectly framed to fit inside container box without clipping
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(isMobile ? 45 : 42, width / height, 0.1, 100);
-    camera.position.set(0, isMobile ? 0.2 : 0.4, isMobile ? 4.5 : 4.2);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+    camera.position.set(0, isMobile ? 0.0 : 0.02, isSmallMobile ? 3.35 : isMobile ? 3.45 : 3.55);
 
-    // 2. WebGL Renderer with High-Efficiency Settings
-    // Adaptive quality: low-end constrained devices use antialias: false, standard/high-end keep antialias: true
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: isMobile ? false : (capabilities.isConstrained ? false : true),
-      powerPreference: 'high-performance',
-      precision: isMobile ? 'mediump' : 'highp',
-    });
+    // 2. WebGL Renderer with High-Efficiency Settings and Fallback Protection
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: isMobile ? false : (capabilities.isConstrained ? false : true),
+        powerPreference: 'high-performance',
+        precision: isMobile ? 'mediump' : 'highp',
+      });
+    } catch (e) {
+      console.error('Failed to create WebGLRenderer:', e);
+      setLoadFailed(true);
+      return;
+    }
 
     renderer.setSize(width, height);
     // Safe DPR defaults: preserved exact quality for standard devices, capped at 1.0 on mobile to avoid 9x retina over-rendering
     const targetDpr = isMobile
       ? 1.0
-      : (capabilities.isConstrained ? 1.0 : Math.min(window.devicePixelRatio, 1.5));
+      : (capabilities.isConstrained ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setPixelRatio(targetDpr);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.35;
     container.appendChild(renderer.domElement);
+
+    // Context loss & restoration protection
+    const handleContextLost = (e) => {
+      e.preventDefault();
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+    const handleContextRestored = () => {
+      setReloadKey((k) => k + 1);
+    };
+    renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
+    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
     // 3. Studio Lighting System
     const ambientLight = new THREE.AmbientLight(0xfff6ea, 1.8);
@@ -80,58 +99,107 @@ export const Hero3DCanvas = ({ isReady = true }) => {
     const masterGroup = new THREE.Group();
     scene.add(masterGroup);
 
-    // 4. Load Downloaded 3D GLB Model (Canonical Path)
+    // 4. Load Downloaded 3D GLB Model with Resilient Fetch + Parse + Automatic Retries
     const modelWrapper = new THREE.Group();
     masterGroup.add(modelWrapper);
 
     const loader = new GLTFLoader();
     const canonicalModelPath = '/3d-model/my_face__quiff_hairstyle.glb';
     let isDisposed = false;
+    let retryAttempt = 0;
+    const MAX_RETRIES = 3;
 
-    loader.load(
-      canonicalModelPath,
-      (gltf) => {
-        if (isDisposed) return;
-        const loadedModel = gltf.scene;
-
-        // Auto-center the model using its Bounding Box
-        const box = new THREE.Box3().setFromObject(loadedModel);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-
-        loadedModel.position.set(-center.x, -center.y, -center.z);
-
-        // Normalize scale to fit viewport responsively
-        const maxDim = Math.max(size.x, size.y, size.z);
-        maxDimRef.current = maxDim;
-        const targetScale = getResponsiveScale() / (maxDim || 1);
-        modelWrapper.scale.setScalar(targetScale);
-
-        // Enhance materials
-        loadedModel.traverse((node) => {
-          if (node.isMesh && node.material) {
-            node.material.envMapIntensity = 1.5;
+    const executeLoad = async () => {
+      while (retryAttempt <= MAX_RETRIES && !isDisposed) {
+        try {
+          if (THREE.Cache.enabled) {
+            THREE.Cache.remove(canonicalModelPath);
           }
-        });
+          const cacheBuster = retryAttempt > 0 ? `?t=${Date.now()}` : '';
+          const url = `${canonicalModelPath}${cacheBuster}`;
 
-        modelWrapper.add(loadedModel);
-        setIsLoaded(true);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-        // Render initial visual frame immediately so model is painted
-        renderScene();
+          const response = await fetch(url, {
+            signal: controller.signal,
+            cache: retryAttempt > 0 ? 'no-cache' : 'default',
+          });
+          clearTimeout(timeoutId);
 
-        if (isLoopActive && !animationFrameId) {
-          animate();
-        }
-      },
-      undefined,
-      (err) => {
-        console.warn(`Could not load 3D model from ${canonicalModelPath}:`, err);
-        if (!isDisposed) {
-          setLoadFailed(true);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status} fetching 3D model`);
+          }
+
+          const arrayBuffer = await response.arrayBuffer();
+          if (isDisposed) return;
+
+          await new Promise((resolve, reject) => {
+            loader.parse(
+              arrayBuffer,
+              '',
+              (gltf) => {
+                if (isDisposed) return;
+                const loadedModel = gltf.scene;
+
+                // Auto-center the model using its Bounding Box
+                const box = new THREE.Box3().setFromObject(loadedModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+
+                loadedModel.position.set(-center.x, -center.y, -center.z);
+
+                // Normalize scale to fit viewport responsively
+                const maxDim = Math.max(size.x, size.y, size.z);
+                maxDimRef.current = maxDim;
+                const targetScale = getResponsiveScale() / (maxDim || 1);
+                modelWrapper.scale.setScalar(targetScale);
+
+                // Enhance materials
+                loadedModel.traverse((node) => {
+                  if (node.isMesh && node.material) {
+                    node.material.envMapIntensity = 1.6;
+                    if (node.material.map) node.material.map.colorSpace = THREE.SRGBColorSpace;
+                  }
+                });
+
+                // Clear previous instances if any before adding
+                while (modelWrapper.children.length > 0) {
+                  modelWrapper.remove(modelWrapper.children[0]);
+                }
+
+                modelWrapper.add(loadedModel);
+                setIsLoaded(true);
+                setLoadFailed(false);
+
+                // Render initial visual frame immediately so model is painted
+                renderScene();
+
+                if (!animationFrameId) {
+                  animate();
+                }
+                resolve();
+              },
+              (parseErr) => {
+                reject(parseErr);
+              }
+            );
+          });
+
+          return; // Successfully parsed and attached!
+        } catch (err) {
+          console.warn(`Attempt ${retryAttempt + 1} to load 3D model failed:`, err);
+          retryAttempt++;
+          if (retryAttempt <= MAX_RETRIES && !isDisposed) {
+            await new Promise((r) => setTimeout(r, 1000 * retryAttempt));
+          } else if (!isDisposed) {
+            setLoadFailed(true);
+          }
         }
       }
-    );
+    };
+
+    executeLoad();
 
     // 5. Ambient Champagne Gold Floating Particles
     const particleCount = window.innerWidth < 640 ? 30 : 60;
@@ -221,22 +289,14 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       };
     }
 
-    // 8. High-Performance Render Loop with Offscreen Pause & Initial Idle Deferral
-    const checkVisibility = () => {
-      if (!container) return false;
-      const rect = container.getBoundingClientRect();
-      return rect.bottom > -100 && rect.top < window.innerHeight + 100;
-    };
-
+    // 8. High-Performance Render Loop with Viewport Visibility
     let isVisible = true;
     let animationFrameId = null;
-    let isLoopActive = false;
     let lastRenderTime = 0;
-    const targetFps = isMobile ? 30 : 45; // 30fps mobile, 45fps desktop auto-rotate saves 50%+ CPU load!
+    const targetFps = isMobile ? 30 : 45;
     const frameInterval = 1000 / targetFps;
 
     const renderScene = () => {
-      // Continuous automatic rotation strictly along Y-AXIS only
       if (!isDragging) {
         if (Math.abs(dragVelocity) > 0.0005) {
           dragVelocity *= 0.92;
@@ -244,7 +304,7 @@ export const Hero3DCanvas = ({ isReady = true }) => {
         } else {
           dragVelocity = 0;
           if (modelWrapper) {
-            modelWrapper.rotation.y += 0.015;
+            modelWrapper.rotation.y += 0.012;
           }
         }
       }
@@ -256,7 +316,6 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       masterGroup.rotation.set(0, 0, 0);
       masterGroup.position.set(0, 0, 0);
 
-      // Swirling particles
       if (particles) {
         particles.rotation.y = performance.now() * 0.0003;
       }
@@ -265,16 +324,14 @@ export const Hero3DCanvas = ({ isReady = true }) => {
     };
 
     const animate = (now = performance.now()) => {
-      if (!isVisible || !checkVisibility()) {
+      if (!isVisible) {
         animationFrameId = null;
-        isLoopActive = false;
         return;
       }
 
       animationFrameId = requestAnimationFrame(animate);
 
       if (isDragging) {
-        // Full unthrottled 60fps during active user drag/touch
         renderScene();
       } else {
         const delta = now - lastRenderTime;
@@ -286,43 +343,28 @@ export const Hero3DCanvas = ({ isReady = true }) => {
     };
 
     const startAnimationLoop = () => {
-      if (isLoopActive) return;
-      isLoopActive = true;
-      detachActivationListeners();
       if (!animationFrameId && isVisible) {
         animate();
       }
     };
 
-    const activationEvents = ['pointermove', 'pointerdown', 'touchstart', 'scroll', 'wheel', 'keydown'];
-    const onActivate = () => {
-      startAnimationLoop();
-    };
-
-    const detachActivationListeners = () => {
-      activationEvents.forEach((evt) => {
-        window.removeEventListener(evt, onActivate);
-      });
-      clearTimeout(autoStartTimer);
-    };
-
-    activationEvents.forEach((evt) => {
-      window.addEventListener(evt, onActivate, { passive: true, once: true });
-    });
-
-    // Fallback: auto-start continuous rotation after 2200ms settling time if no user interaction
-    const autoStartTimer = setTimeout(startAnimationLoop, 2200);
+    // Immediately kick off the animation loop
+    startAnimationLoop();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry) {
           isVisible = entry.isIntersecting;
-          if (isVisible && isLoopActive && !animationFrameId) {
-            animate();
+          if (isVisible) {
+            renderScene();
+            startAnimationLoop();
+          } else if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
           }
         }
       },
-      { threshold: 0.01, rootMargin: '120px' }
+      { threshold: 0.02, rootMargin: '100px' }
     );
     observer.observe(container);
 
@@ -335,33 +377,37 @@ export const Hero3DCanvas = ({ isReady = true }) => {
         }
       } else {
         isVisible = true;
-        if (isLoopActive && !animationFrameId) {
-          animate();
-        }
+        renderScene();
+        startAnimationLoop();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     const handleResize = () => {
-      if (!container) return;
-      const newWidth = container.clientWidth || 210;
-      const newHeight = container.clientHeight || 190;
+      if (!container || !renderer) return;
       const isMob = window.innerWidth < 768;
+      const isSmallMob = window.innerWidth < 480;
+      const newWidth = container.clientWidth || (isSmallMob ? 320 : isMob ? 360 : 460);
+      const newHeight = container.clientHeight || (isSmallMob ? 340 : isMob ? 360 : 400);
+
       camera.aspect = newWidth / newHeight;
-      camera.fov = isMob ? 45 : 42;
-      camera.position.z = isMob ? 4.5 : 4.2;
+      camera.fov = 38;
+      camera.position.z = isSmallMob ? 3.35 : isMob ? 3.45 : 3.55;
+      camera.position.y = isMob ? 0.0 : 0.02;
       camera.updateProjectionMatrix();
+
+      const newDpr = isMob ? 1.0 : (capabilities.isConstrained ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(newWidth, newHeight);
-      renderer.setPixelRatio(targetDpr);
+      renderer.setPixelRatio(newDpr);
 
       if (modelWrapper && maxDimRef.current) {
         modelWrapper.scale.setScalar(getResponsiveScale() / maxDimRef.current);
       }
+      renderScene();
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Watch container size changes via ResizeObserver to fix unmeasured 0px layout issues
     let resizeObserver = null;
     if (typeof ResizeObserver !== 'undefined' && container) {
       resizeObserver = new ResizeObserver(() => {
@@ -376,7 +422,6 @@ export const Hero3DCanvas = ({ isReady = true }) => {
         delete window.__HERO_3D_MODEL__;
       }
       if (resizeObserver) resizeObserver.disconnect();
-      detachActivationListeners();
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
@@ -384,8 +429,10 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       observer.disconnect();
-      scrollTrigger.kill();
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
+      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
 
       renderer.dispose();
       particleGeo.dispose();
@@ -395,7 +442,7 @@ export const Hero3DCanvas = ({ isReady = true }) => {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [isReady]);
+  }, [isReady, reloadKey]);
 
   return (
     <div
@@ -404,8 +451,8 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       style={{
         position: 'relative',
         width: '100%',
-        maxWidth: 'clamp(200px, 45vw, 460px)',
-        height: 'clamp(185px, 40vw, 400px)',
+        height: '100%',
+        minHeight: '340px',
         margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
@@ -422,10 +469,10 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       <div
         style={{
           position: 'absolute',
-          width: '78%',
-          height: '78%',
+          width: '85%',
+          height: '85%',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(11, 12, 16, 0) 72%)',
+          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(26, 26, 26, 0) 72%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -442,32 +489,72 @@ export const Hero3DCanvas = ({ isReady = true }) => {
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
-            zIndex: 1,
+            zIndex: 2,
           }}
         >
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               border: '2px solid rgba(212, 175, 55, 0.25)',
-              borderTopColor: 'var(--gold-primary)',
+              borderTopColor: 'var(--gold-primary, #D4AF37)',
               animation: 'spin 0.9s linear infinite',
             }}
           />
           <span
             style={{
-              marginTop: '0.55rem',
+              marginTop: '0.65rem',
               fontFamily: 'var(--font-serif)',
-              fontSize: '0.62rem',
-              color: 'var(--gold-primary)',
-              letterSpacing: '0.1em',
+              fontSize: '0.72rem',
+              color: 'var(--gold-primary, #D4AF37)',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               fontWeight: 600,
             }}
           >
-            Loading 3D Avatar...
+            Loading 3D Style Preview...
           </span>
+        </div>
+      )}
+
+      {/* Interactive reload button if model loading ever fails */}
+      {loadFailed && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            padding: '1rem',
+            zIndex: 10,
+            background: 'rgba(26, 26, 26, 0.9)',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #D2CFC9)' }}>
+            Could not load 3D preview
+          </span>
+          <button
+            onClick={() => {
+              setLoadFailed(false);
+              setIsLoaded(false);
+              setReloadKey((k) => k + 1);
+            }}
+            className="btn btn-outline"
+            style={{
+              padding: '0.45rem 1.1rem',
+              fontSize: '0.8rem',
+              borderColor: 'var(--gold-primary, #D4AF37)',
+              color: 'var(--gold-primary, #D4AF37)',
+              borderRadius: 'var(--radius-full, 9999px)',
+            }}
+          >
+            Tap to Reload Model
+          </button>
         </div>
       )}
     </div>

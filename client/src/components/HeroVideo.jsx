@@ -16,9 +16,7 @@ const lazyWithRetry = (componentImport) =>
     }
   });
 
-const Hero3DCanvas = lazyWithRetry(() =>
-  import('./Three/Hero3DCanvas').then((m) => ({ default: m.Hero3DCanvas }))
-);
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -178,140 +176,141 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
           maxWidth: '1240px',
         }}
       >
-        <div className="hero-grid-layout">
-          {/* Column A: High-Contrast Luxury Typography & CTAs */}
-          <div className="hero-text-col">
-            {/* Luxury Tagline Badge */}
-            <div
+        <div
+          className="hero-content-center"
+          style={{
+            maxWidth: '880px',
+            margin: '0 auto',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          {/* Luxury Tagline Badge */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              background: 'rgba(26, 26, 26, 0.92)',
+              border: '1px solid rgba(212, 175, 55, 0.45)',
+              padding: '0.4rem 1.1rem',
+              borderRadius: 'var(--radius-full)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              marginBottom: '1.2rem',
+              boxShadow: '0 4px 18px rgba(0, 0, 0, 0.65), 0 0 10px rgba(212, 175, 55, 0.2)',
+            }}
+          >
+            <Sparkles size={14} color="var(--gold-primary)" />
+            <span
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'rgba(26, 26, 26, 0.92)',
-                border: '1px solid rgba(212, 175, 55, 0.45)',
-                padding: '0.4rem 1.1rem',
-                borderRadius: 'var(--radius-full)',
-                backdropFilter: 'blur(14px)',
-                WebkitBackdropFilter: 'blur(14px)',
-                marginBottom: '1.2rem',
-                boxShadow: '0 4px 18px rgba(0, 0, 0, 0.65), 0 0 10px rgba(212, 175, 55, 0.2)',
+                fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--gold-primary)',
               }}
             >
-              <Sparkles size={14} color="var(--gold-primary)" />
-              <span
-                style={{
-                  fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: 'var(--gold-primary)',
-                }}
-              >
-                Artisan Gentleman Barbershop
-              </span>
-            </div>
+              Artisan Gentleman Barbershop
+            </span>
+          </div>
 
-            {/* Main Salon Headline */}
-            <h1
-              style={{
-                fontSize: 'clamp(2.3rem, 5.5vw, 4.4rem)',
-                fontWeight: 800,
-                lineHeight: 1.08,
-                marginBottom: '1rem',
-                color: 'var(--color-cream)',
-                textShadow: '0 4px 24px rgba(0, 0, 0, 0.98), 0 2px 6px rgba(0, 0, 0, 0.9)',
-                fontFamily: 'var(--font-serif)',
-              }}
-            >
-              {config.salonName || 'The Classic Cut Salon'}
-            </h1>
+          {/* Main Salon Headline */}
+          <h1
+            style={{
+              fontSize: 'clamp(2.5rem, 6.2vw, 4.8rem)',
+              fontWeight: 800,
+              lineHeight: 1.08,
+              marginBottom: '1.2rem',
+              color: 'var(--color-cream)',
+              textShadow: '0 4px 24px rgba(0, 0, 0, 0.98), 0 2px 6px rgba(0, 0, 0, 0.9)',
+              fontFamily: 'var(--font-serif)',
+            }}
+          >
+            {config.salonName || 'The Classic Cut Salon'}
+          </h1>
 
-            {/* Hero Tagline */}
-            <p
-              style={{
-                fontSize: 'clamp(1.05rem, 2.3vw, 1.35rem)',
-                color: 'var(--color-cream-muted)',
-                lineHeight: 1.6,
-                fontWeight: 400,
-                marginBottom: '2rem',
-                textShadow: '0 2px 14px rgba(0, 0, 0, 0.98)',
-              }}
-            >
-              {config.tagline || 'Where Vintage Craftsmanship Meets Modern Luxury'}
-            </p>
+          {/* Hero Tagline */}
+          <p
+            style={{
+              fontSize: 'clamp(1.05rem, 2.3vw, 1.35rem)',
+              color: 'var(--color-cream-muted)',
+              lineHeight: 1.6,
+              fontWeight: 400,
+              maxWidth: '740px',
+              marginBottom: '2.2rem',
+              textShadow: '0 2px 14px rgba(0, 0, 0, 0.98)',
+            }}
+          >
+            {config.tagline || 'Where Vintage Craftsmanship Meets Modern Luxury'}
+          </p>
 
-            {/* Action Buttons */}
-            <div
-              className="hero-action-buttons"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-                gap: '0.85rem',
-                flexWrap: 'wrap',
-              }}
-            >
-              {isAdmin ? (
-                <button
-                  onClick={onOpenAdmin || onOpenLoyalty}
-                  className="btn btn-primary hero-btn"
-                  style={{
-                    fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
-                    padding: '0.85rem 1.85rem',
-                    boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
-                    background: 'linear-gradient(135deg, #c52222 0%, #991b1b 100%)',
-                    borderColor: '#ff4d4d',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.55rem',
-                  }}
-                >
-                  <ShieldCheck size={18} />
-                  <span>Admin Central Command</span>
-                </button>
-              ) : (
-                <button
-                  onClick={onOpenLoyalty}
-                  className="btn btn-primary hero-btn"
-                  style={{
-                    fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
-                    padding: '0.85rem 1.85rem',
-                    boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.55rem',
-                  }}
-                >
-                  <Scissors size={18} />
-                  <span>Check My 5-Coupon Card</span>
-                </button>
-              )}
-
+          {/* Action Buttons */}
+          <div
+            className="hero-action-buttons"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            {isAdmin ? (
               <button
-                onClick={onScrollToExperience}
-                className="btn btn-outline hero-btn"
+                onClick={onOpenAdmin || onOpenLoyalty}
+                className="btn btn-primary hero-btn"
                 style={{
                   fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
-                  padding: '0.85rem 1.75rem',
-                  background: 'rgba(26, 26, 26, 0.85)',
-                  backdropFilter: 'blur(10px)',
-                  borderColor: 'rgba(212, 175, 55, 0.4)',
+                  padding: '0.85rem 1.85rem',
+                  boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
+                  background: 'linear-gradient(135deg, #c52222 0%, #991b1b 100%)',
+                  borderColor: '#ff4d4d',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.55rem',
                 }}
               >
-                <span>Barber Journey</span>
-                <ChevronDown size={18} />
+                <ShieldCheck size={18} />
+                <span>Admin Central Command</span>
               </button>
-            </div>
-          </div>
+            ) : (
+              <button
+                onClick={onOpenLoyalty}
+                className="btn btn-primary hero-btn"
+                style={{
+                  fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
+                  padding: '0.85rem 1.85rem',
+                  boxShadow: '0 8px 24px rgba(212, 175, 55, 0.35)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
+                }}
+              >
+                <Scissors size={18} />
+                <span>Check My 5-Coupon Card</span>
+              </button>
+            )}
 
-          {/* Column B: Interactive 3D Showcase */}
-          <div className="hero-3d-col">
-            <Suspense fallback={<div style={{ minHeight: '190px' }} />}>
-              <Hero3DCanvas isReady={isReady} />
-            </Suspense>
+            <button
+              onClick={onScrollToExperience}
+              className="btn btn-outline hero-btn"
+              style={{
+                fontSize: 'clamp(0.88rem, 2.2vw, 1rem)',
+                padding: '0.85rem 1.75rem',
+                background: 'rgba(26, 26, 26, 0.85)',
+                backdropFilter: 'blur(10px)',
+                borderColor: 'rgba(212, 175, 55, 0.4)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+              }}
+            >
+              <span>Explore Atelier</span>
+              <ChevronDown size={18} />
+            </button>
           </div>
         </div>
 
@@ -434,50 +433,17 @@ export const HeroVideo = ({ onOpenLoyalty, onOpenAdmin, onScrollToExperience, is
 
       {/* Component Styles for Responsive Grid & Micro-Transitions */}
       <style>{`
-        .hero-grid-layout {
-          display: grid;
-          grid-template-columns: minmax(320px, 1.2fr) minmax(280px, 1fr);
-          align-items: center;
-          gap: 2.5rem;
-        }
-
-        .hero-text-col {
-          text-align: left;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
+        .hero-content-center {
+          text-align: center;
+          margin: 0 auto;
         }
 
         .hero-action-buttons {
           display: flex;
           align-items: center;
-          justify-content: flex-start;
-          gap: 0.85rem;
+          justify-content: center;
+          gap: 1rem;
         }
-
-        .hero-3d-col {
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-        }
-
-        @media (max-width: 960px) {
-          .hero-grid-layout {
-            grid-template-columns: 1fr;
-            text-align: center;
-            gap: 1.5rem;
-          }
-
-          .hero-text-col {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-
-          .hero-action-buttons {
-            justify-content: center !important;
-          }
 
           .hero-btn {
             justify-content: center;

@@ -199,7 +199,7 @@ export const SetAdminPasswordModal = ({ isOpen, onClose }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div className="input-group" style={{ marginBottom: 0 }}>
-            <label className="input-label" style={{ marginBottom: '0.45rem', display: 'block', fontWeight: 600, fontSize: '0.84rem', color: '#e2e8f0' }}>
+            <label className="input-label" style={{ marginBottom: '0.45rem', display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--color-cream, #F9F8F6)' }}>
               {isAdmin ? 'Choose Admin Password *' : 'Choose Your Password *'}
             </label>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -233,9 +233,9 @@ export const SetAdminPasswordModal = ({ isOpen, onClose }) => {
                   width: '100%',
                   height: '46px',
                   borderRadius: '10px',
-                  background: 'rgba(10, 13, 20, 0.95)',
+                  background: 'var(--color-charcoal-deep, #141414)',
                   border: '1.5px solid rgba(212, 175, 55, 0.35)',
-                  color: '#ffffff',
+                  color: 'var(--color-cream, #F9F8F6)',
                   fontSize: '0.92rem',
                   outline: 'none',
                   transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
@@ -278,7 +278,7 @@ export const SetAdminPasswordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="input-group" style={{ marginBottom: 0 }}>
-            <label className="input-label" style={{ marginBottom: '0.45rem', display: 'block', fontWeight: 600, fontSize: '0.84rem', color: '#e2e8f0' }}>
+            <label className="input-label" style={{ marginBottom: '0.45rem', display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--color-cream, #F9F8F6)' }}>
               {isAdmin ? 'Confirm Admin Password *' : 'Confirm Your Password *'}
             </label>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -312,9 +312,9 @@ export const SetAdminPasswordModal = ({ isOpen, onClose }) => {
                   width: '100%',
                   height: '46px',
                   borderRadius: '10px',
-                  background: 'rgba(10, 13, 20, 0.95)',
+                  background: 'var(--color-charcoal-deep, #141414)',
                   border: '1.5px solid rgba(212, 175, 55, 0.35)',
-                  color: '#ffffff',
+                  color: 'var(--color-cream, #F9F8F6)',
                   fontSize: '0.92rem',
                   outline: 'none',
                   transition: 'border-color 0.2s ease, box-shadow 0.2s ease',

@@ -154,7 +154,7 @@ export const LoadingScreen = ({ onComplete }) => {
             borderRadius: '50%',
             border: '2px solid rgba(212, 175, 55, 0.7)',
             boxShadow: '0 0 25px rgba(212, 175, 55, 0.35), inset 0 0 15px rgba(212, 175, 55, 0.2)',
-            background: 'rgba(18, 22, 32, 0.85)',
+            background: 'rgba(26, 26, 26, 0.92)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -200,7 +200,7 @@ export const LoadingScreen = ({ onComplete }) => {
             fontSize: '0.78rem',
           }}
         >
-          <span style={{ color: '#94a3b8', letterSpacing: '0.04em', fontWeight: 500 }}>
+          <span style={{ color: 'var(--text-secondary, #D2CFC9)', letterSpacing: '0.04em', fontWeight: 500 }}>
             {statusText}
           </span>
           <span
@@ -245,7 +245,7 @@ export const LoadingScreen = ({ onComplete }) => {
         style={{
           marginTop: '1.25rem',
           fontSize: '0.68rem',
-          color: '#64748b',
+          color: 'var(--text-muted, #9E9A92)',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           zIndex: 2,

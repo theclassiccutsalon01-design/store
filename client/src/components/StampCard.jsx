@@ -67,6 +67,11 @@ export const StampCard = ({
   const [showExpiredCoupons, setShowExpiredCoupons] = useState(false);
   const [couponToSpin, setCouponToSpin] = useState(null);
 
+  // Pagination states (6 items per page)
+  const [couponPage, setCouponPage] = useState(1);
+  const [expiredPage, setExpiredPage] = useState(1);
+  const [visitsPage, setVisitsPage] = useState(1);
+
   const showQrCode = async (coupon) => {
     try {
       const url = await QRCode.toDataURL(coupon.code, {
@@ -100,6 +105,9 @@ export const StampCard = ({
       setIsEditingName(false);
       setEditMsg('');
       setEditError('');
+      setCouponPage(1);
+      setExpiredPage(1);
+      setVisitsPage(1);
     }
   }, [isOpen, initialTab, isAdmin]);
 
@@ -130,7 +138,7 @@ export const StampCard = ({
   useEffect(() => {
     if (isOpen && isAuthenticated) {
       fetchLoyalty();
-      const pollTimer = setInterval(fetchLoyalty, 10000); // Live 10s refresh for testing countdowns
+      const pollTimer = setInterval(fetchLoyalty, 60000); // 60s background heartbeat (SSE handles instant real-time live updates)
       return () => clearInterval(pollTimer);
     }
   }, [isOpen, isAuthenticated]);
@@ -148,14 +156,28 @@ export const StampCard = ({
             const updatedCoupons = data.coupon
               ? [data.coupon, ...(prev.coupons || [])]
               : prev.coupons || [];
+
+            const newVisit = data.visit || {
+              _id: 'realtime_' + Date.now(),
+              serviceType: data.serviceType,
+              serviceName: data.serviceName || data.serviceType,
+              visitedAt: data.timestamp || new Date().toISOString(),
+              expiresAt: data.expiresAt,
+              status: 'active',
+            };
+
+            const updatedVisits = [newVisit, ...(prev.recentVisits || []).filter((v) => v._id !== newVisit._id)];
+
             const nextLoyalty = {
               ...prev,
               currentStamps: data.currentStamps,
               lifetimeVisits: data.lifetimeVisits,
               lastStampDate: data.lastStampDate,
-              daysUntilStampDecay: data.daysUntilStampDecay || 45,
-              stampsNeeded: 5 - data.currentStamps,
+              daysUntilStampDecay: data.daysUntilStampDecay !== undefined ? data.daysUntilStampDecay : (data.policyDays || 45),
+              policyDays: data.policyDays || (data.serviceType === 'Beard' || data.serviceType === 'Haircut + Beard' ? 25 : 45),
+              stampsNeeded: Math.max(0, 5 - data.currentStamps),
               coupons: updatedCoupons,
+              recentVisits: updatedVisits,
             };
             try {
               localStorage.setItem('classic_cut_loyalty', JSON.stringify(nextLoyalty));
@@ -243,6 +265,34 @@ export const StampCard = ({
   const expiredCoupons = loyaltyData?.expiredCoupons || [];
   const redeemedCoupons = loyaltyData?.redeemedCoupons || [];
   const hasExpiringSoonCoupon = activeCoupons.some((c) => c.isExpiringSoon || (c.daysRemaining !== undefined && c.daysRemaining <= 5));
+
+  // Active Coupons Pagination (6 items per page)
+  const COUPONS_PER_PAGE = 6;
+  const totalCouponPages = Math.ceil(activeCoupons.length / COUPONS_PER_PAGE) || 1;
+  const validCouponPage = Math.min(Math.max(1, couponPage), totalCouponPages);
+  const paginatedActiveCoupons = activeCoupons.slice(
+    (validCouponPage - 1) * COUPONS_PER_PAGE,
+    validCouponPage * COUPONS_PER_PAGE
+  );
+
+  // Expired Coupons Pagination (6 items per page)
+  const EXPIRED_PER_PAGE = 6;
+  const totalExpiredPages = Math.ceil(expiredCoupons.length / EXPIRED_PER_PAGE) || 1;
+  const validExpiredPage = Math.min(Math.max(1, expiredPage), totalExpiredPages);
+  const paginatedExpiredCoupons = expiredCoupons.slice(
+    (validExpiredPage - 1) * EXPIRED_PER_PAGE,
+    validExpiredPage * EXPIRED_PER_PAGE
+  );
+
+  // Recent Visits Pagination (6 items per page)
+  const VISITS_PER_PAGE = 6;
+  const recentVisitsList = loyaltyData?.recentVisits || [];
+  const totalVisitsPages = Math.ceil(recentVisitsList.length / VISITS_PER_PAGE) || 1;
+  const validVisitsPage = Math.min(Math.max(1, visitsPage), totalVisitsPages);
+  const paginatedVisits = recentVisitsList.slice(
+    (validVisitsPage - 1) * VISITS_PER_PAGE,
+    validVisitsPage * VISITS_PER_PAGE
+  );
 
   return (
     <div
@@ -937,15 +987,34 @@ export const StampCard = ({
                   </div>
                 )}
 
-                {/* Stamp Inactivity Policy Banner (Only visible when user has stamps) */}
-                {currentStamps > 0 && (() => {
+                {/* Stamp Inactivity Policy Banner */}
+                {(() => {
                   const latestVisit = loyaltyData?.recentVisits?.[0];
                   const activeVisitWithExpiry = loyaltyData?.recentVisits?.find(v => v.expiresAt && v.status === 'active') || latestVisit;
-                  const calculatedPolicyDays = activeVisitWithExpiry?.expiresAt && activeVisitWithExpiry?.visitedAt
-                    ? Math.round((new Date(activeVisitWithExpiry.expiresAt).getTime() - new Date(activeVisitWithExpiry.visitedAt).getTime()) / (1000 * 60 * 60 * 24))
-                    : (activeVisitWithExpiry?.serviceType === 'Beard' || activeVisitWithExpiry?.serviceType === 'Haircut + Beard' ? 25 : 45);
 
-                  const policyDays = loyaltyData?.policyDays || calculatedPolicyDays || 45;
+                  const isBeardService = (v) => {
+                    if (!v) return false;
+                    const st = String(v.serviceType || '').toLowerCase().trim();
+                    const sn = String(v.serviceName || '').toLowerCase().trim();
+                    return st === 'beard' || st.includes('haircut + beard') || st.includes('haircut+beard') ||
+                           sn.includes('haircut + beard') || sn.includes('haircut+beard') || sn.includes('beard');
+                  };
+
+                  let effectivePolicyDays = 45;
+                  if (latestVisit && isBeardService(latestVisit)) {
+                    effectivePolicyDays = 25;
+                  } else if (loyaltyData?.policyDays) {
+                    effectivePolicyDays = loyaltyData.policyDays;
+                  } else if (activeVisitWithExpiry && isBeardService(activeVisitWithExpiry)) {
+                    effectivePolicyDays = 25;
+                  } else if (activeVisitWithExpiry?.expiresAt && activeVisitWithExpiry?.visitedAt) {
+                    const diffDays = Math.round((new Date(activeVisitWithExpiry.expiresAt).getTime() - new Date(activeVisitWithExpiry.visitedAt).getTime()) / (1000 * 60 * 60 * 24));
+                    effectivePolicyDays = diffDays > 0 ? diffDays : 45;
+                  }
+
+                  const serviceLabel = (latestVisit && isBeardService(latestVisit))
+                    ? (latestVisit.serviceName || 'Beard / Haircut + Beard')
+                    : (latestVisit?.serviceName || 'Haircut');
 
                   return (
                     <div
@@ -975,17 +1044,18 @@ export const StampCard = ({
                         <span style={{ fontWeight: 700, color: loyaltyData?.isStampDecayWarning ? '#f87171' : 'var(--gold-primary)' }}>
                           {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Inactivity Warning:' : '⏳ Visit Policy:'}
                         </span>{' '}
-                        {loyaltyData?.daysUntilStampDecay !== undefined ? (
+                        {currentStamps > 0 && loyaltyData?.daysUntilStampDecay !== undefined ? (
                           <span>
                             Next visit due within{' '}
-                            <strong style={{ color: '#ffffff', textDecoration: 'underline' }}>
+                            <strong style={{ color: 'var(--color-cream, #F9F8F6)', textDecoration: 'underline' }}>
                               {loyaltyData.daysUntilStampDecay} day{loyaltyData.daysUntilStampDecay !== 1 ? 's' : ''}
                             </strong>{' '}
-                            to keep current stamps and earn your next one! If {policyDays} days pass without a visit, 1 stamp will expire.
+                            to keep current stamps and earn your next one! If {effectivePolicyDays} days pass without a visit, 1 stamp will expire ({serviceLabel}: {effectivePolicyDays} days validity).
                           </span>
                         ) : (
                           <span>
-                            Collect your next stamp within {policyDays} days of your previous visit to preserve your stamp progress.
+                            Beard & Haircut + Beard are valid for <strong style={{ color: 'var(--gold-primary)' }}>25 days</strong>; Haircut is valid for <strong style={{ color: 'var(--gold-primary)' }}>45 days</strong>.
+                            {latestVisit ? ` Last service was ${serviceLabel} (${effectivePolicyDays} days policy).` : ' Visit salon to collect your first stamp!'}
                           </span>
                         )}
                       </div>
@@ -1134,14 +1204,15 @@ export const StampCard = ({
                       No active offers yet. Reach 5 salon visits to earn your 25% to 50% OFF grooming reward!
                     </div>
                   ) : (
-                    <div
-                      style={{
+                    <>
+                      <div
+                        style={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '0.6rem',
                       }}
                     >
-                      {activeCoupons.map((coupon) => (
+                      {paginatedActiveCoupons.map((coupon) => (
                         <div
                           key={coupon._id}
                           style={{
@@ -1241,6 +1312,7 @@ export const StampCard = ({
                                   padding: '0.12rem 0.45rem',
                                   borderRadius: '4px',
                                   letterSpacing: '0.02em',
+                                  boxShadow: '0 0 10px rgba(212, 175, 55, 0.25)',
                                 }}
                               >
                                 {coupon.isSpun
@@ -1310,8 +1382,52 @@ export const StampCard = ({
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+
+                    {/* Active Coupons Pagination (if > 6) */}
+                    {activeCoupons.length > COUPONS_PER_PAGE && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginTop: '0.65rem',
+                          padding: '0.45rem 0.75rem',
+                          background: 'rgba(212, 175, 55, 0.06)',
+                          border: '1px solid rgba(212, 175, 55, 0.25)',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>
+                          Showing {(validCouponPage - 1) * COUPONS_PER_PAGE + 1}–{Math.min(validCouponPage * COUPONS_PER_PAGE, activeCoupons.length)} of {activeCoupons.length}
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => setCouponPage((p) => Math.max(1, p - 1))}
+                            disabled={validCouponPage <= 1}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                          >
+                            Prev
+                          </button>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', fontWeight: 700 }}>
+                            {validCouponPage} / {totalCouponPages}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCouponPage((p) => Math.min(totalCouponPages, p + 1))}
+                            disabled={validCouponPage >= totalCouponPages}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
                 {/* Expired / Removed Coupons Section with Clear Reason */}
                 {expiredCoupons.length > 0 && (
@@ -1356,7 +1472,7 @@ export const StampCard = ({
 
                     {showExpiredCoupons && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.65rem' }}>
-                        {expiredCoupons.map((coupon) => (
+                        {paginatedExpiredCoupons.map((coupon) => (
                           <div
                             key={coupon._id}
                             style={{
@@ -1423,38 +1539,125 @@ export const StampCard = ({
                             </div>
                           </div>
                         ))}
+
+                        {/* Expired Coupons Pagination (if > 6) */}
+                        {expiredCoupons.length > EXPIRED_PER_PAGE && (
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginTop: '0.4rem',
+                              padding: '0.4rem 0.65rem',
+                              background: 'rgba(239, 68, 68, 0.08)',
+                              border: '1px solid rgba(239, 68, 68, 0.25)',
+                              borderRadius: 'var(--radius-sm)',
+                            }}
+                          >
+                            <span style={{ fontSize: '0.72rem', color: '#fca5a5' }}>
+                              Showing {(validExpiredPage - 1) * EXPIRED_PER_PAGE + 1}–{Math.min(validExpiredPage * EXPIRED_PER_PAGE, expiredCoupons.length)} of {expiredCoupons.length}
+                            </span>
+                            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => setExpiredPage((p) => Math.max(1, p - 1))}
+                                disabled={validExpiredPage <= 1}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                              >
+                                Prev
+                              </button>
+                              <span style={{ fontSize: '0.72rem', color: '#f87171', fontWeight: 700 }}>
+                                {validExpiredPage} / {totalExpiredPages}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setExpiredPage((p) => Math.min(totalExpiredPages, p + 1))}
+                                disabled={validExpiredPage >= totalExpiredPages}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                              >
+                                Next
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Visit History Log */}
-                {loyaltyData?.recentVisits && loyaltyData.recentVisits.length > 0 && (
+                {recentVisitsList.length > 0 && (
                   <div>
                     <h4 style={{ fontSize: '0.88rem', marginBottom: '0.45rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <Clock size={14} />
-                      <span>Recent Salon Visits</span>
+                      <span>Recent Salon Visits ({recentVisitsList.length})</span>
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                      {loyaltyData.recentVisits.map((visit) => (
+                      {paginatedVisits.map((visit) => (
                         <div
                           key={visit._id}
                           style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             fontSize: '0.75rem',
-                            padding: '0.35rem 0.65rem',
+                            padding: '0.4rem 0.65rem',
                             background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
                             borderRadius: '4px',
                           }}
                         >
                           <span style={{ color: '#e2e8f0' }}>{visit.serviceName}</span>
-                          <span style={{ color: 'var(--gold-primary)' }}>
+                          <span style={{ color: 'var(--gold-primary)', fontWeight: 600 }}>
                             {new Date(visit.visitedAt).toLocaleDateString()}
                           </span>
                         </div>
                       ))}
                     </div>
+
+                    {/* Visits Pagination (if > 6) */}
+                    {recentVisitsList.length > VISITS_PER_PAGE && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginTop: '0.5rem',
+                          padding: '0.4rem 0.65rem',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          Showing {(validVisitsPage - 1) * VISITS_PER_PAGE + 1}–{Math.min(validVisitsPage * VISITS_PER_PAGE, recentVisitsList.length)} of {recentVisitsList.length}
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => setVisitsPage((p) => Math.max(1, p - 1))}
+                            disabled={validVisitsPage <= 1}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                          >
+                            Prev
+                          </button>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', fontWeight: 700 }}>
+                            {validVisitsPage} / {totalVisitsPages}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setVisitsPage((p) => Math.min(totalVisitsPages, p + 1))}
+                            disabled={validVisitsPage >= totalVisitsPages}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

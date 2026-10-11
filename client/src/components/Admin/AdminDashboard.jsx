@@ -108,10 +108,10 @@ const PaginationControl = ({
               cursor: 'pointer',
             }}
           >
-            <option value={5} style={{ background: '#12151e', color: '#fff' }}>5</option>
-            <option value={10} style={{ background: '#12151e', color: '#fff' }}>10</option>
-            <option value={20} style={{ background: '#12151e', color: '#fff' }}>20</option>
-            <option value={50} style={{ background: '#12151e', color: '#fff' }}>50</option>
+            <option value={5} style={{ background: '#1A1A1A', color: 'var(--color-cream, #F9F8F6)' }}>5</option>
+            <option value={10} style={{ background: '#1A1A1A', color: 'var(--color-cream, #F9F8F6)' }}>10</option>
+            <option value={20} style={{ background: '#1A1A1A', color: 'var(--color-cream, #F9F8F6)' }}>20</option>
+            <option value={50} style={{ background: '#1A1A1A', color: 'var(--color-cream, #F9F8F6)' }}>50</option>
           </select>
         </div>
       </div>
@@ -217,6 +217,14 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   // Visit history modal (Feature 3)
   const [selectedCustomerHistory, setSelectedCustomerHistory] = useState(null);
   const [historyVisits, setHistoryVisits] = useState([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const historyPageSize = 6;
+  const totalHistoryPages = Math.ceil(historyVisits.length / historyPageSize) || 1;
+  const validHistoryPage = Math.min(Math.max(1, historyPage), totalHistoryPages);
+  const paginatedHistoryVisits = historyVisits.slice(
+    (validHistoryPage - 1) * historyPageSize,
+    validHistoryPage * historyPageSize
+  );
 
   // Service-Based Stamp Issuance Modal State (Feature 2)
   const [customerForStamp, setCustomerForStamp] = useState(null);
@@ -252,9 +260,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [customerPage, setCustomerPage] = useState(1);
   const [customerPageSize, setCustomerPageSize] = useState(10);
 
-  // Deleted Accounts Pagination
+  // Deleted Accounts Pagination (6 items per page)
   const [deletedPage, setDeletedPage] = useState(1);
-  const [deletedPageSize, setDeletedPageSize] = useState(5);
+  const [deletedPageSize, setDeletedPageSize] = useState(6);
 
   // Paginated active customers: server returns the current slice in `customers`
   const totalCustomerPages = Math.ceil(totalCustomersCount / customerPageSize) || 1;
@@ -282,9 +290,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [extendMsg, setExtendMsg] = useState('');
   const [extendError, setExtendError] = useState('');
   const [couponPage, setCouponPage] = useState(1);
-  const [couponPageSize, setCouponPageSize] = useState(5);
+  const [couponPageSize, setCouponPageSize] = useState(6);
 
-  // Paginated coupons calculation
+  // Paginated coupons calculation (6 items per page)
   const totalCouponPages = Math.ceil(couponsList.length / couponPageSize) || 1;
   const validCouponPage = Math.min(Math.max(1, couponPage), totalCouponPages);
   const paginatedCoupons = couponsList.slice(
@@ -591,6 +599,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   // 2. View Customer Visit & Stamp History with Admin Authorization (Feature 3)
   const handleViewHistory = async (customer) => {
+    setHistoryPage(1);
     try {
       const res = await API.get(`/loyalty/customer-history/${customer._id}`);
       setSelectedCustomerHistory(res.data.customer || customer);
@@ -3003,8 +3012,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     No service or stamp history recorded yet for this customer.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {historyVisits.map((v) => {
+                  <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {paginatedHistoryVisits.map((v) => {
                       const isExpired = v.status === 'expired' || (v.status === 'active' && v.expiresAt && new Date(v.expiresAt) <= new Date());
                       const isRedeemed = v.status === 'redeemed';
                       const isActive = v.status === 'active' && !isExpired;
@@ -3121,6 +3131,50 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Customer Audit Visits Pagination (if > 6) */}
+                  {historyVisits.length > historyPageSize && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginTop: '0.85rem',
+                          padding: '0.5rem 0.85rem',
+                          background: 'rgba(212, 175, 55, 0.06)',
+                          border: '1px solid rgba(212, 175, 55, 0.25)',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.74rem', color: '#cbd5e1' }}>
+                          Showing {(validHistoryPage - 1) * historyPageSize + 1}–{Math.min(validHistoryPage * historyPageSize, historyVisits.length)} of {historyVisits.length} visits
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                            disabled={validHistoryPage <= 1}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.22rem 0.55rem', fontSize: '0.72rem' }}
+                          >
+                            Prev
+                          </button>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--gold-primary)', fontWeight: 700 }}>
+                            Page {validHistoryPage} of {totalHistoryPages}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setHistoryPage((p) => Math.min(totalHistoryPages, p + 1))}
+                            disabled={validHistoryPage >= totalHistoryPages}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.22rem 0.55rem', fontSize: '0.72rem' }}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -3313,9 +3367,9 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                               fontWeight: 700,
                               padding: '0.2rem 0.55rem',
                               borderRadius: '4px',
-                              background: opt.days === 20 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                              color: opt.days === 20 ? '#fbbf24' : '#60a5fa',
-                              border: `1px solid ${opt.days === 20 ? '#f59e0b' : '#3b82f6'}`,
+                              background: opt.days === 25 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                              color: opt.days === 25 ? '#fbbf24' : '#60a5fa',
+                              border: `1px solid ${opt.days === 25 ? '#f59e0b' : '#3b82f6'}`,
                             }}
                           >
                             {opt.badge}
@@ -3342,7 +3396,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                   </div>
                   <div style={{ fontSize: '0.85rem', color: '#ffffff' }}>
                     {(() => {
-                      const days = selectedServiceType === 'Haircut Only' ? 45 : 20;
+                      const days = (selectedServiceType === 'Haircut Only' || selectedServiceType === 'Haircut') ? 45 : 25;
                       const exp = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
                       return `${exp.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (${days} days validity from now)`;
                     })()}

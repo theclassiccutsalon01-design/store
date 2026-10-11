@@ -13,7 +13,7 @@ const visitLogSchema = new mongoose.Schema(
     },
     serviceType: {
       type: String,
-      enum: ['Beard', 'Haircut + Beard', 'Haircut Only', null],
+      enum: ['Beard', 'Haircut + Beard', 'Haircut Only', 'Haircut', null],
       default: null,
     },
     serviceName: {
@@ -57,5 +57,6 @@ const visitLogSchema = new mongoose.Schema(
 // Indexes for performance and query optimization
 visitLogSchema.index({ user: 1, status: 1, expiresAt: 1 });
 visitLogSchema.index({ user: 1, visitedAt: -1 });
+visitLogSchema.index({ user: 1, expiresAt: 1 });
 
 export const VisitLog = mongoose.model('VisitLog', visitLogSchema);

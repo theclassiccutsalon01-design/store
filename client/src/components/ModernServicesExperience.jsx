@@ -81,25 +81,25 @@ export const ModernServicesExperience = () => {
       ],
     },
     {
-      id: 'hot-towel-shave',
-      title: 'Hot Towel Shave',
-      category: 'Royal Feather Razor Shave',
+      id: 'luxury-hairwash',
+      title: 'Hairwash',
+      category: 'Scalp Revitalize & Rinse',
       color: '#1E1E1E', // Refined Charcoal Surface
       accentColor: '#D4AF37', // Champagne Gold
       textColor: 'var(--color-cream)',
-      tagline: 'Warm Botanical Lather & Steam',
+      tagline: 'Botanical Cleansing & Acupressure Scalp Massage',
       description:
-        'Experience the pinnacle of grooming with our classic haircuts, where tradition meets contemporary style.',
+        'Indulge in an invigorating scalp cleanse, botanical conditioning massage, and fresh blast-dry finish.',
       fullDescription:
-        'Traditional imperial wet shave experience. Begins with pre-shave essential oils, warm herbal lather applied with badger-hair brush, precision feather razor stroke, and double hot eucalyptus towel wrap with cold balm finish.',
-      duration: '30 Mins',
-      image: '/figures/hot_towel_shave_real.webp',
+        'Our signature hairwash treatment begins with warm water scalp hydration, rich organic tea-tree and argan lather applied with soothing acupressure head massage, deep conditioning nutrient wrap, and a revitalizing blast-dry with matte clay styling.',
+      duration: '20 Mins',
+      image: '/figures/luxury_hairwash.jpg',
       shapeType: 'triple-arch', // Triple arch/cloud shape
       inclusions: [
-        'Essential Pre-Shave Oil Treatment',
-        'Botanical Rich Warm Lather Application',
-        'Traditional Feather Straight Razor Shave',
-        'Double Hot Eucalyptus Towel + Cold Toner',
+        'Warm Water Botanical Cleansing',
+        'Acupressure Scalp Massage',
+        'Deep Conditioning Nutrient Wrap',
+        'Blast-Dry & Matte Finish',
       ],
     },
   ];
@@ -923,7 +923,7 @@ export const ModernServicesExperience = () => {
             position: 'fixed',
             inset: 0,
             zIndex: 999999,
-            background: 'rgba(5, 7, 12, 0.88)',
+            background: 'rgba(18, 18, 18, 0.88)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
             display: 'flex',
@@ -1095,7 +1095,7 @@ export const ModernServicesExperience = () => {
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                 display: 'flex',
                 gap: '0.75rem',
-                background: '#090c13',
+                background: 'var(--color-charcoal, #1A1A1A)',
               }}
             >
               <a
@@ -1125,7 +1125,7 @@ export const ModernServicesExperience = () => {
             position: 'fixed',
             inset: 0,
             zIndex: 999999,
-            background: 'rgba(5, 7, 12, 0.92)',
+            background: 'rgba(18, 18, 18, 0.88)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
             display: 'flex',
@@ -1276,7 +1276,7 @@ export const ModernServicesExperience = () => {
             position: 'fixed',
             inset: 0,
             zIndex: 999999,
-            background: 'rgba(5, 7, 12, 0.9)',
+            background: 'rgba(18, 18, 18, 0.88)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
             display: 'flex',
@@ -1383,33 +1383,42 @@ export const ModernServicesExperience = () => {
                   items: [
                     { name: 'Classic Gentleman Haircut', duration: '35 Mins', desc: 'Face profile consultation, shear sectioning, taper fade & botanical finish.' },
                     { name: 'Textured Crop Fade & Low Taper', duration: '40 Mins', desc: 'Modern jagged scissor texturizing with zero skin taper fade.' },
-                    { name: 'Executive Quiff & Pompadour Cut', duration: '40 Mins', desc: 'Voluminous directional quiff blow-dry sculpt with premium matte clay.' },
+                    { name: 'Executive Quiff', duration: '40 Mins', desc: 'Voluminous directional quiff blow-dry sculpt with premium matte clay.' },
                     { name: 'Skin Fade / Drop Fade Special', duration: '40 Mins', desc: 'Zero shaver blend with surgical foil detailing and crisp edge-up.' },
                     { name: 'Junior Grooming (Kids under 12)', duration: '25 Mins', desc: 'Patient scissor & clipper styling designed for young gentlemen.' },
                   ],
                 },
                 {
-                  category: '✂️ Beard Sculpting & Royal Shaves',
+                  category: '✂️ Beard Sculpting & Grooming',
                   items: [
-                    { name: 'Royal Hot Towel Shave', duration: '30 Mins', desc: 'Pre-shave essential oils, warm herbal badger lather, straight razor & double hot eucalyptus towels.' },
                     { name: 'Beard Trim & Razor Line Sculpt', duration: '25 Mins', desc: 'Symmetry alignment, cheek and neck straight-razor cleaning & cedarwood balm massage.' },
                     { name: 'Moustache & Goatee Detailing', duration: '15 Mins', desc: 'Precision contour shaping with organic styling wax.' },
                     { name: 'Express Beard Shape & Conditioning', duration: '20 Mins', desc: 'Clipper beard graduation with argan oil steam treatment.' },
                   ],
                 },
                 {
-                  category: '💆 Scalp Therapies & Hair Spa',
+                  category: '🎨 Hair Colouring, Highlights & Texturizing',
                   items: [
+                    { name: 'Hair colour', duration: '45 Mins', desc: 'Custom ammonia-free tone matching, seamless grey coverage & luminous shine.' },
+                    { name: 'Colour Highlights', duration: '60 Mins', desc: 'Bespoke hand-painted foil streaks & multi-dimensional sun-kissed contrast.' },
+                    { name: 'Hair pumping', duration: '35 Mins', desc: 'Professional root volumizing hair pumping texture treatment for elevated lift and bounce.' },
+                  ],
+                },
+                {
+                  category: '💆 Skin Detoxing, Scrubs & Luxury Spa',
+                  items: [
+                    { name: 'Hairwash', duration: '20 Mins', desc: 'Botanical shampoo cleanse, invigorating acupressure scalp massage & blast dry styling.' },
+                    { name: 'Spa', duration: '45 Mins', desc: 'Deep restorative hair & scalp spa with botanical steam mask, hot towel wrap & nourishing massage.' },
+                    { name: 'Scrub', duration: '25 Mins', desc: 'Gentle exfoliating walnut & volcanic charcoal micro-scrub to eliminate dead cells and purify pores.' },
+                    { name: 'D-tan', duration: '30 Mins', desc: 'Instant tan removal, antioxidant botanical hydration, and radiant sun-damage repair pack.' },
                     { name: 'Scalp Detox & Deep Conditioning', duration: '25 Mins', desc: 'Charcoal follicle purification, invigorating scalp massage & nutrient mask.' },
-                    { name: 'Ayurvedic Hot Oil Scalp Massage', duration: '25 Mins', desc: 'Herbal root stimulation, acupressure temple relief & warm towel wrap.' },
-                    { name: 'Keratin Nourish Hair Spa', duration: '40 Mins', desc: 'Intensive restorative protein infusion for dry or frizzy hair.' },
                   ],
                 },
                 {
                   category: '👑 Complete VIP Makeover Packages',
                   items: [
-                    { name: 'The Classic Gentleman Trio (Haircut + Beard + Shave)', duration: '60 Mins', desc: 'Complete signature transformation package with steam towels and styling finish.' },
-                    { name: 'Royal Groom Transformation (Haircut + Shave + Scalp Detox)', duration: '75 Mins', desc: 'The ultimate royal indulgence. Full haircut, hot towel straight razor shave, and luxury detox spa.' },
+                    { name: 'The Classic Gentleman Trio (Haircut + Beard + Hairwash)', duration: '60 Mins', desc: 'Complete signature transformation package with steam towels and styling finish.' },
+                    { name: 'Royal Groom Transformation (Haircut + D-tan + Scalp Spa)', duration: '75 Mins', desc: 'The ultimate royal indulgence. Full haircut, brightening D-tan pack, and luxury rejuvenating spa.' },
                   ],
                 },
               ].map((section, idx) => (
@@ -1460,7 +1469,7 @@ export const ModernServicesExperience = () => {
                               {item.duration}
                             </span>
                           </div>
-                          <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                          <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary, #D2CFC9)', margin: 0, lineHeight: 1.4 }}>
                             {item.desc}
                           </p>
                         </div>
@@ -1491,10 +1500,10 @@ export const ModernServicesExperience = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'rgba(18, 22, 32, 0.98)',
+                background: 'rgba(26, 26, 26, 0.98)',
               }}
             >
-              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #D2CFC9)' }}>
                 Need custom consultation or group bookings?
               </span>
               <a
@@ -1637,7 +1646,7 @@ export const ModernServicesExperience = () => {
         }
 
         .extra-art-card {
-          background: rgba(18, 22, 32, 0.95);
+          background: var(--bg-card, #262626);
           border: 1.5px solid rgba(212, 175, 55, 0.35);
           border-radius: 18px;
           overflow: hidden;
@@ -1668,13 +1677,13 @@ export const ModernServicesExperience = () => {
         }
         .extra-art-caption h4 {
           font-size: 0.88rem;
-          color: #ffffff;
+          color: var(--color-cream, #F9F8F6);
           margin: 0 0 0.2rem;
           font-weight: 700;
         }
         .extra-art-caption p {
           font-size: 0.72rem;
-          color: #94a3b8;
+          color: var(--text-secondary, #D2CFC9);
           margin: 0;
         }
 

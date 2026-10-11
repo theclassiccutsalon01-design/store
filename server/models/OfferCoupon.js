@@ -88,5 +88,7 @@ const offerCouponSchema = new mongoose.Schema(
 // Helpful indexes on user, status, and spin eligibility
 offerCouponSchema.index({ user: 1, status: 1 });
 offerCouponSchema.index({ user: 1, isSpun: 1, status: 1 });
+offerCouponSchema.index({ user: 1, status: 1, expiresAt: 1 });
+offerCouponSchema.index({ status: 1, expiresAt: 1 });
 
 export const OfferCoupon = mongoose.model('OfferCoupon', offerCouponSchema);

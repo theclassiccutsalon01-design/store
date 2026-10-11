@@ -7,6 +7,7 @@ import { broadcastRealtimeEvent } from '../services/realtimeService.js';
 import {
   calculateSpinDiscount,
   calculateStampExpiry,
+  getPolicyDaysForService,
   ALLOWED_SERVICE_TYPES,
   SERVICE_EXPIRY_CONFIG,
 } from '../config/loyaltyConfig.js';
@@ -96,35 +97,37 @@ export const syncUserActiveStamps = async (user) => {
     await user.save();
   }
 
-  // 4. Calculate days until the soonest expiring active stamp and determine its policy duration
+  // 4. Calculate policy duration and days until stamp decay
+  // Customer's current visit policy is authoritatively dictated by their latest visit service:
+  // Beard or Haircut + Beard => 25 days | Haircut Only or Haircut => 45 days
+  let latestVisit = null;
+  if (activeStamps.length > 0) {
+    // activeStamps sorted ascending by visitedAt, so last item is the newest active stamp
+    latestVisit = activeStamps[activeStamps.length - 1];
+  } else {
+    // If user has 0 active stamps (e.g. newly registered or just completed a 5-stamp cycle),
+    // retrieve their most recent visit log to retain their current service policy
+    latestVisit = await VisitLog.findOne({ user: user._id }).sort({ visitedAt: -1 }).lean();
+  }
+
+  const policyDays = latestVisit
+    ? getPolicyDaysForService(latestVisit.serviceType, latestVisit.serviceName)
+    : 45;
+
   let daysUntilDecay = 0;
-  let policyDays = 45;
   if (activeStamps.length > 0) {
     let minExpiryMs = Infinity;
-    let nextExpiringStamp = null;
     for (const s of activeStamps) {
+      const stampPolicyDays = getPolicyDaysForService(s.serviceType, s.serviceName);
       const expMs = s.expiresAt
         ? new Date(s.expiresAt).getTime()
-        : new Date(s.visitedAt).getTime() + 45 * 24 * 60 * 60 * 1000;
+        : new Date(s.visitedAt).getTime() + stampPolicyDays * 24 * 60 * 60 * 1000;
       if (expMs < minExpiryMs) {
         minExpiryMs = expMs;
-        nextExpiringStamp = s;
       }
     }
     const msLeft = minExpiryMs - now.getTime();
     daysUntilDecay = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
-    if (nextExpiringStamp) {
-      if (nextExpiringStamp.expiresAt && nextExpiringStamp.visitedAt) {
-        policyDays = Math.round(
-          (new Date(nextExpiringStamp.expiresAt).getTime() - new Date(nextExpiringStamp.visitedAt).getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-      } else if (nextExpiringStamp.serviceType === 'Beard' || nextExpiringStamp.serviceType === 'Haircut + Beard') {
-        policyDays = 25;
-      } else {
-        policyDays = 45;
-      }
-    }
   }
 
   const stampsDecayed = Math.max(0, prevStamps - newStampsCount);
@@ -289,12 +292,14 @@ export const addVisitStamp = async (req, res) => {
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
       daysUntilStampDecay: days,
+      policyDays: days,
       serviceType,
       expiresAt,
       activeCouponsCount,
       offerUnlocked,
       coupon: newCoupon,
       serviceName: cleanServiceName,
+      visit,
       timestamp: now,
     });
 
@@ -306,6 +311,7 @@ export const addVisitStamp = async (req, res) => {
       lifetimeVisits: user.lifetimeVisits,
       lastStampDate: user.lastStampDate,
       serviceType,
+      policyDays: days,
       expiresAt,
       daysUntilStampDecay: days,
       activeCouponsCount,
@@ -459,11 +465,31 @@ export const getVisitHistory = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view this history' });
     }
 
-    const visits = await VisitLog.find({ user: targetUserId })
+    const { page, limit } = req.query;
+    const isExplicitPagination = page !== undefined || limit !== undefined;
+
+    let query = VisitLog.find({ user: targetUserId })
       .populate('admin', 'name email role')
       .populate('redeemedCoupon', 'code title discountType discountPercent status')
       .sort({ visitedAt: -1 });
 
+    if (isExplicitPagination) {
+      const total = await VisitLog.countDocuments({ user: targetUserId });
+      const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+      const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 6));
+      const totalPages = Math.ceil(total / parsedLimit) || 1;
+
+      const visits = await query.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
+      return res.status(200).json({
+        visits,
+        total,
+        page: parsedPage,
+        totalPages,
+        limit: parsedLimit,
+      });
+    }
+
+    const visits = await query;
     res.status(200).json(visits);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch visit history' });
@@ -856,12 +882,12 @@ export const updateCustomerByAdmin = async (req, res) => {
   }
 };
 
-// 12. Admin: Get All Offer Coupons (Active, Expiring in 5 days, Expired, Redeemed) with filter & search
+// 12. Admin: Get All Offer Coupons (Active, Expiring in 5 days, Expired, Redeemed) with filter, search & pagination
 export const getAllCouponsAdmin = async (req, res) => {
   try {
     await markExpiredCoupons();
 
-    const { status = 'all', search = '' } = req.query;
+    const { status = 'all', search = '', page, limit } = req.query;
 
     let query = {};
     const now = new Date();
@@ -880,24 +906,41 @@ export const getAllCouponsAdmin = async (req, res) => {
       query = { status: 'redeemed' };
     }
 
-    let coupons = await OfferCoupon.find(query)
+    // Filter by search term in database (coupon code or customer name/phone/email)
+    if (search && search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: escaped, $options: 'i' } },
+          { email: { $regex: escaped, $options: 'i' } },
+          { phone: { $regex: escaped, $options: 'i' } },
+        ],
+      })
+        .select('_id')
+        .lean();
+
+      const userIds = matchingUsers.map((u) => u._id);
+      query.$or = [{ code: { $regex: escaped, $options: 'i' } }, { user: { $in: userIds } }];
+    }
+
+    const isExplicitPagination = page !== undefined || limit !== undefined;
+    const totalMatching = await OfferCoupon.countDocuments(query);
+    const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 6));
+    const totalPages = Math.ceil(totalMatching / parsedLimit) || 1;
+
+    let couponQuery = OfferCoupon.find(query)
       .populate('user', 'name email phone currentStamps lifetimeVisits')
       .populate('extendedBy', 'name email')
       .populate('redeemedBy', 'name email')
       .sort({ createdAt: -1 })
       .lean();
 
-    // Filter by search term if provided (code, customer name, email, phone)
-    if (search && search.trim()) {
-      const s = search.trim().toLowerCase();
-      coupons = coupons.filter(
-        (c) =>
-          c.code.toLowerCase().includes(s) ||
-          c.user?.name?.toLowerCase().includes(s) ||
-          c.user?.email?.toLowerCase().includes(s) ||
-          c.user?.phone?.toLowerCase().includes(s)
-      );
+    if (isExplicitPagination) {
+      couponQuery = couponQuery.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
     }
+
+    const coupons = await couponQuery;
 
     // Enhance with remaining days and 5-day warning
     const enhancedCoupons = coupons.map((c) => {
@@ -911,7 +954,7 @@ export const getAllCouponsAdmin = async (req, res) => {
       };
     });
 
-    // Compute summary stats
+    // Compute summary stats efficiently
     const [totalCount, activeCount, expiredCount, redeemedCount] = await Promise.all([
       OfferCoupon.countDocuments(),
       OfferCoupon.countDocuments({ status: 'active', expiresAt: { $gt: now } }),
@@ -927,6 +970,10 @@ export const getAllCouponsAdmin = async (req, res) => {
 
     res.status(200).json({
       coupons: enhancedCoupons,
+      total: totalMatching,
+      page: isExplicitPagination ? parsedPage : 1,
+      totalPages: isExplicitPagination ? totalPages : 1,
+      limit: isExplicitPagination ? parsedLimit : totalMatching,
       stats: {
         total: totalCount,
         active: activeCount,
