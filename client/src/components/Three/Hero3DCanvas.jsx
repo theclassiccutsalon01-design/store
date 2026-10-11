@@ -227,31 +227,57 @@ export const Hero3DCanvas = ({ isReady = true }) => {
     const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
 
-    // 6. Interactive Pointer/Touch Drag to Spin along Y-Axis
+    // 6. Interactive Pointer/Touch Drag to Spin along Y-Axis with Touch-Scroll Protection
     let isDragging = false;
+    let startPointerX = 0;
+    let startPointerY = 0;
     let prevPointerX = 0;
     let dragVelocity = 0;
+    let hasDeterminedDirection = false;
+    let isHorizontalDrag = false;
 
     const onPointerDown = (e) => {
-      if (typeof startAnimationLoop === 'function') startAnimationLoop();
-      isDragging = true;
+      startPointerX = e.clientX;
+      startPointerY = e.clientY;
       prevPointerX = e.clientX;
       dragVelocity = 0;
-      if (container) container.style.cursor = 'grabbing';
+      hasDeterminedDirection = false;
+      isHorizontalDrag = false;
+      isDragging = true;
     };
 
     const onPointerMove = (e) => {
       if (!isDragging) return;
-      const deltaX = e.clientX - prevPointerX;
-      prevPointerX = e.clientX;
-      dragVelocity = deltaX * 0.007;
-      if (modelWrapper) {
-        modelWrapper.rotation.y += dragVelocity;
+      const dx = Math.abs(e.clientX - startPointerX);
+      const dy = Math.abs(e.clientY - startPointerY);
+
+      if (!hasDeterminedDirection) {
+        if (dx < 6 && dy < 6) return; // small jitter threshold
+        hasDeterminedDirection = true;
+        if (dy > dx) {
+          // User is scrolling the page vertically on mobile/laptop; let browser scroll smoothly!
+          isDragging = false;
+          return;
+        }
+        isHorizontalDrag = true;
+        if (typeof startAnimationLoop === 'function') startAnimationLoop();
+        if (container) container.style.cursor = 'grabbing';
+      }
+
+      if (isHorizontalDrag) {
+        const deltaX = e.clientX - prevPointerX;
+        prevPointerX = e.clientX;
+        dragVelocity = deltaX * 0.007;
+        if (modelWrapper) {
+          modelWrapper.rotation.y += dragVelocity;
+        }
       }
     };
 
     const onPointerUp = () => {
       isDragging = false;
+      hasDeterminedDirection = false;
+      isHorizontalDrag = false;
       if (container) container.style.cursor = 'grab';
     };
 
@@ -429,6 +455,7 @@ export const Hero3DCanvas = ({ isReady = true }) => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       observer.disconnect();
+      if (scrollTrigger) scrollTrigger.kill();
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);

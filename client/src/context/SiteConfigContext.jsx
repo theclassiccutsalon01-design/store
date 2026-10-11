@@ -46,6 +46,15 @@ export const SiteConfigProvider = ({ children }) => {
 
   useEffect(() => {
     fetchConfig();
+
+    const handleRealtime = (e) => {
+      const data = e.detail;
+      if (data && data.type === 'SITE_CONFIG_UPDATED' && data.config) {
+        setConfig(data.config);
+      }
+    };
+    window.addEventListener('classic_cut_realtime', handleRealtime);
+    return () => window.removeEventListener('classic_cut_realtime', handleRealtime);
   }, []);
 
   return (

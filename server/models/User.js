@@ -91,6 +91,10 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// High-performance compound indexes for customer lookups and admin dashboard listings
+userSchema.index({ role: 1, isDeleted: 1, createdAt: -1 });
+userSchema.index({ phone: 1 });
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) {

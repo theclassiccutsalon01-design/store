@@ -399,27 +399,88 @@ export const getAllCustomers = async (req, res) => {
     const fiveDaysLater = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
     const now = new Date();
 
+    const userIds = users.map((u) => u._id);
+
+    // High-performance batch queries: fetch latest visits and coupon stats for all users in just 2 parallel aggregations
+    const [latestVisits, couponStats] = await Promise.all([
+      userIds.length > 0
+        ? VisitLog.aggregate([
+            { $match: { user: { $in: userIds } } },
+            { $sort: { visitedAt: -1 } },
+            {
+              $group: {
+                _id: '$user',
+                visitedAt: { $first: '$visitedAt' },
+                serviceName: { $first: '$serviceName' },
+              },
+            },
+          ])
+        : Promise.resolve([]),
+      userIds.length > 0
+        ? OfferCoupon.aggregate([
+            { $match: { user: { $in: userIds } } },
+            {
+              $group: {
+                _id: '$user',
+                activeCount: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $eq: ['$status', 'active'] },
+                          { $gt: ['$expiresAt', now] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+                expiredCount: {
+                  $sum: {
+                    $cond: [{ $eq: ['$status', 'expired'] }, 1, 0],
+                  },
+                },
+                hasExpiringSoon: {
+                  $max: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $eq: ['$status', 'active'] },
+                          { $gt: ['$expiresAt', now] },
+                          { $lte: ['$expiresAt', fiveDaysLater] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ])
+        : Promise.resolve([]),
+    ]);
+
+    const visitMap = new Map(latestVisits.map((v) => [v._id.toString(), v]));
+    const couponMap = new Map(couponStats.map((c) => [c._id.toString(), c]));
+
     // Attach latest visit, stamp decay countdown, and coupons to each customer
     const customerData = await Promise.all(
       users.map(async (u) => {
-        const decayInfo = await applyStampInactivityCheck(u);
-        const lastVisit = await VisitLog.findOne({ user: u._id }).sort({ visitedAt: -1 });
-        
-        const [activeCoupons, expiredCouponsCount] = await Promise.all([
-          OfferCoupon.find({
-            user: u._id,
-            status: 'active',
-            expiresAt: { $gt: now },
-          }).lean(),
-          OfferCoupon.countDocuments({
-            user: u._id,
-            status: 'expired',
-          }),
-        ]);
+        // Fast-path: only run full inactivity sync if user has active stamps
+        const decayInfo =
+          (u.currentStamps || 0) > 0
+            ? await applyStampInactivityCheck(u)
+            : { daysUntilDecay: 0 };
 
-        const hasExpiringSoonCoupon = activeCoupons.some(
-          (c) => new Date(c.expiresAt) <= fiveDaysLater
-        );
+        const userIdStr = u._id.toString();
+        const lastVisit = visitMap.get(userIdStr);
+        const coupons = couponMap.get(userIdStr) || {
+          activeCount: 0,
+          expiredCount: 0,
+          hasExpiringSoon: 0,
+        };
 
         return {
           ...u.toObject(),
@@ -429,9 +490,9 @@ export const getAllCustomers = async (req, res) => {
           isStampDecayWarning: decayInfo.daysUntilDecay > 0 && decayInfo.daysUntilDecay <= 5,
           lastVisitDate: lastVisit?.visitedAt || null,
           lastServiceName: lastVisit?.serviceName || 'N/A',
-          activeCouponsCount: activeCoupons.length,
-          expiredCouponsCount,
-          hasExpiringSoonCoupon,
+          activeCouponsCount: coupons.activeCount,
+          expiredCouponsCount: coupons.expiredCount,
+          hasExpiringSoonCoupon: Boolean(coupons.hasExpiringSoon),
         };
       })
     );

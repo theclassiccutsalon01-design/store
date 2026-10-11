@@ -558,290 +558,36 @@ html.lenis body {
 }
 
 /* ==========================================================================
-   The Master Cut Collection: 3D Title & Shimmer Animations
+   PERFORMANCE & COMPOSITING OPTIMIZATIONS (120FPS SILKY SMOOTH)
    ========================================================================== */
-.gold-shimmer-text {
-  background: linear-gradient(
-    90deg,
-    #d4af37 0%,
-    #fff6cc 25%,
-    #d4af37 50%,
-    #aa7c11 75%,
-    #d4af37 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: goldTextShimmer 4s linear infinite;
-  display: inline-block;
+#services,
+#contact,
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 800px;
 }
 
-@keyframes goldTextShimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
-}
-
-.scissor-snip-icon {
-  display: inline-block;
-  color: var(--gold-primary);
-  animation: scissorSnip 2.5s ease-in-out infinite;
-  transform-origin: center center;
-}
-
-@keyframes scissorSnip {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-18deg) scale(1.15); }
-  50% { transform: rotate(12deg) scale(1.15); }
-  75% { transform: rotate(-6deg) scale(1.05); }
-}
-
-/* ==========================================================================
-   7 UNIQUE HAIRCUT CARD ENTRANCE ANIMATIONS ("Ek Jaga Hai Screen")
-   Note: At 100%, transform and filter MUST reset to 'none' so that
-   browsers render text with razor-sharp native subpixel font antialiasing (NO BLUR).
-   ========================================================================== */
-
-/* 1. Signature Precision Scissor Fade: 3D Depth Zoom & Perspective Tilt */
-.card-anim-style-1 {
-  animation: cardZoom3D 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes cardZoom3D {
-  0% {
-    opacity: 0;
-    transform: perspective(1000px) translateZ(-140px) rotateY(-12deg) scale(0.88);
+/* Fast GPU Compositing for Smooth Mobile / Desktop Scrolling */
+@media (max-width: 768px) {
+  /* On low-end mobile devices & phones, replace expensive multi-pass Gaussian blur
+     with lightweight solid-alpha dark luxury panels to prevent GPU thermal throttling & frame drops */
+  .modal-overlay,
+  .service-modal-backdrop,
+  .admin-modal-overlay,
+  .glass-card,
+  .glass-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(22, 22, 22, 0.96) !important;
   }
-  99% {
-    opacity: 1;
-    transform: perspective(1000px) translateZ(0) rotateY(0deg) scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
+
+  .navbar-container,
+  .mobile-bottom-nav {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
   }
 }
 
-/* 2. Royal Parted Executive Pompadour: Executive Blueprint Slide from Left */
-.card-anim-style-2 {
-  animation: cardSlideLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes cardSlideLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-120px) rotateZ(-3deg) scale(0.94);
-  }
-  99% {
-    opacity: 1;
-    transform: translateX(0) rotateZ(0deg) scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* 3. Textured Crop & Low Skin Taper: Elastic Gravity Drop from Top */
-.card-anim-style-3 {
-  animation: cardDropBounce 0.65s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
-}
-@keyframes cardDropBounce {
-  0% {
-    opacity: 0;
-    transform: translateY(-90px) scale(1.05);
-  }
-  75% {
-    transform: translateY(6px) scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* 4. The Classic Gentleman Contour: 3D Book Flip / Heritage Unfold */
-.card-anim-style-4 {
-  animation: cardFlip3D 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes cardFlip3D {
-  0% {
-    opacity: 0;
-    transform: perspective(1200px) rotateY(35deg) scale(0.92);
-    transform-origin: left center;
-  }
-  99% {
-    opacity: 1;
-    transform: perspective(1200px) rotateY(0deg) scale(1);
-    transform-origin: left center;
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transform-origin: initial;
-  }
-}
-
-/* 5. Sculpted Quiff & Razor Perimeter: Razor Sweep from Right */
-.card-anim-style-5 {
-  animation: cardSweepRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes cardSweepRight {
-  0% {
-    opacity: 0;
-    transform: translateX(120px) rotateZ(3deg) scale(0.94);
-  }
-  99% {
-    opacity: 1;
-    transform: translateX(0) rotateZ(0deg) scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* 6. Textured Waves & Tapered Neckline: Liquid Wave Arc Rise */
-.card-anim-style-6 {
-  animation: cardWaveRise 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-@keyframes cardWaveRise {
-  0% {
-    opacity: 0;
-    transform: perspective(1000px) translateY(90px) rotateX(18deg) scale(0.94);
-  }
-  99% {
-    opacity: 1;
-    transform: perspective(1000px) translateY(0) rotateX(0deg) scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* 7. Imperial Beard & Haircut Ensemble: Royal Imperial Burst with Aura Glow */
-.card-anim-style-7 {
-  animation: cardRoyalBurst 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes cardRoyalBurst {
-  0% {
-    opacity: 0;
-    transform: scale(0.88);
-    box-shadow: 0 0 50px rgba(212, 175, 55, 0.8);
-  }
-  65% {
-    transform: scale(1.02);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 30px rgba(212, 175, 55, 0.3);
-  }
-}
-
-/* Crystal-clear typography rendering on haircut cards (100% NO BLUR) */
-.haircut-reveal-card {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  isolation: isolate;
-  transform: none;
-}
-.haircut-reveal-card * {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-/* ==========================================================================
-   PINNED STAGE & PILL NAVIGATION ("Ek Jaga Hai Screen")
-   ========================================================================== */
-.pinned-stage-wrapper {
-  position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.style-pills-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow-x: auto;
-  max-width: 100%;
-  padding: 0.4rem 0.8rem;
-  margin-bottom: 1.25rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  border-radius: var(--radius-full);
-  background: rgba(10, 13, 20, 0.75);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  backdrop-filter: blur(12px);
-}
-.style-pills-container::-webkit-scrollbar {
-  display: none;
-}
-
-.style-pill-btn {
-  background: rgba(18, 22, 32, 0.85);
-  border: 1px solid rgba(212, 175, 55, 0.22);
-  color: #94a3b8;
-  padding: 0.38rem 0.85rem;
-  border-radius: var(--radius-full);
-  font-size: 0.76rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.style-pill-btn:hover {
-  border-color: var(--gold-primary);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.style-pill-btn.active-pill {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(18, 22, 32, 0.95) 100%);
-  border: 1.5px solid var(--gold-primary);
-  color: var(--gold-primary);
-  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
-  transform: scale(1.04);
-}
-
-.pill-num {
-  font-size: 0.68rem;
-  opacity: 0.8;
-  font-family: monospace;
-}
-
-.haircut-stage-card-box {
-  width: 100%;
-  position: relative;
-}
-
-/* Master Cut Title Glow and Snip */
-.master-cut-title-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(14, 18, 26, 0.9);
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  padding: 0.35rem 0.95rem;
-  border-radius: var(--radius-full);
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 12px rgba(212, 175, 55, 0.2);
-}
 
 /* ==========================================================================
    ADMIN DASHBOARD RESPONSIVE MOBILE OPTIMIZATION

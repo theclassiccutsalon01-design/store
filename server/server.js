@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import compression from 'compression';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { connectDB } from './config/db.js';
@@ -131,6 +132,17 @@ export const createCorsOptions = (env = process.env) => {
     credentials: true,
   };
 };
+
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers.accept === 'text/event-stream' || req.originalUrl?.includes('/stream')) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  })
+);
 
 app.use(cors(createCorsOptions(process.env)));
 // SEC-006: Enforce 1MB payload limits to protect against memory exhaustion DoS attacks

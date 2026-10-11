@@ -990,40 +990,67 @@ export const StampCard = ({
                 {/* Stamp Inactivity Policy Banner */}
                 {(() => {
                   const latestVisit = loyaltyData?.recentVisits?.[0];
-                  const activeVisitWithExpiry = loyaltyData?.recentVisits?.find(v => v.expiresAt && v.status === 'active') || latestVisit;
 
-                  const isBeardService = (v) => {
-                    if (!v) return false;
+                  const getServicePolicy = (v) => {
+                    if (!v) {
+                      return {
+                        days: 45,
+                        title: 'Gentleman Haircut',
+                        badge: '45 Days Validity',
+                        isBeard: false,
+                        isCombo: false,
+                      };
+                    }
                     const st = String(v.serviceType || '').toLowerCase().trim();
                     const sn = String(v.serviceName || '').toLowerCase().trim();
-                    return st === 'beard' || st.includes('haircut + beard') || st.includes('haircut+beard') ||
-                           sn.includes('haircut + beard') || sn.includes('haircut+beard') || sn.includes('beard');
+                    const isCombo = st.includes('haircut + beard') || st.includes('haircut+beard') ||
+                                    sn.includes('haircut + beard') || sn.includes('haircut+beard');
+                    const isBeardOnly = (st === 'beard' || sn.includes('beard')) && !isCombo;
+
+                    if (isCombo) {
+                      return {
+                        days: 25,
+                        title: v.serviceName || 'Haircut + Beard',
+                        badge: '25 Days Validity',
+                        isBeard: true,
+                        isCombo: true,
+                      };
+                    }
+                    if (isBeardOnly) {
+                      return {
+                        days: 25,
+                        title: v.serviceName || 'Beard Grooming',
+                        badge: '25 Days Validity',
+                        isBeard: true,
+                        isCombo: false,
+                      };
+                    }
+                    return {
+                      days: 45,
+                      title: v.serviceName || 'Haircut',
+                      badge: '45 Days Validity',
+                      isBeard: false,
+                      isCombo: false,
+                    };
                   };
 
-                  let effectivePolicyDays = 45;
-                  if (latestVisit && isBeardService(latestVisit)) {
-                    effectivePolicyDays = 25;
-                  } else if (loyaltyData?.policyDays) {
-                    effectivePolicyDays = loyaltyData.policyDays;
-                  } else if (activeVisitWithExpiry && isBeardService(activeVisitWithExpiry)) {
-                    effectivePolicyDays = 25;
-                  } else if (activeVisitWithExpiry?.expiresAt && activeVisitWithExpiry?.visitedAt) {
-                    const diffDays = Math.round((new Date(activeVisitWithExpiry.expiresAt).getTime() - new Date(activeVisitWithExpiry.visitedAt).getTime()) / (1000 * 60 * 60 * 24));
-                    effectivePolicyDays = diffDays > 0 ? diffDays : 45;
-                  }
+                  const currentPolicy = getServicePolicy(latestVisit);
+                  const effectivePolicyDays = loyaltyData?.policyDays || currentPolicy.days;
+                  const serviceLabel = currentPolicy.title;
+                  const daysUntilDecay = loyaltyData?.daysUntilStampDecay !== undefined
+                    ? loyaltyData.daysUntilStampDecay
+                    : effectivePolicyDays;
 
-                  const serviceLabel = (latestVisit && isBeardService(latestVisit))
-                    ? (latestVisit.serviceName || 'Beard / Haircut + Beard')
-                    : (latestVisit?.serviceName || 'Haircut');
+                  const isWarning = loyaltyData?.isStampDecayWarning || (currentStamps > 0 && daysUntilDecay <= 5);
 
                   return (
                     <div
                       style={{
                         marginBottom: '1rem',
-                        background: loyaltyData?.isStampDecayWarning
+                        background: isWarning
                           ? 'rgba(239, 68, 68, 0.12)'
                           : 'rgba(212, 175, 55, 0.08)',
-                        border: loyaltyData?.isStampDecayWarning
+                        border: isWarning
                           ? '1.5px solid rgba(239, 68, 68, 0.5)'
                           : '1px solid rgba(212, 175, 55, 0.38)',
                         borderRadius: 'var(--radius-sm)',
@@ -1032,31 +1059,59 @@ export const StampCard = ({
                         alignItems: 'center',
                         gap: '0.65rem',
                         fontSize: '0.78rem',
-                        color: loyaltyData?.isStampDecayWarning ? '#fca5a5' : '#fef08a',
+                        color: isWarning ? '#fca5a5' : '#fef08a',
                       }}
                     >
-                      {loyaltyData?.isStampDecayWarning ? (
+                      {isWarning ? (
                         <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
                       ) : (
                         <Clock size={16} color="var(--gold-primary)" style={{ flexShrink: 0 }} />
                       )}
-                      <div style={{ lineHeight: 1.45 }}>
-                        <span style={{ fontWeight: 700, color: loyaltyData?.isStampDecayWarning ? '#f87171' : 'var(--gold-primary)' }}>
-                          {loyaltyData?.isStampDecayWarning ? '⚠️ URGENT — Inactivity Warning:' : '⏳ Visit Policy:'}
-                        </span>{' '}
-                        {currentStamps > 0 && loyaltyData?.daysUntilStampDecay !== undefined ? (
-                          <span>
-                            Next visit due within{' '}
-                            <strong style={{ color: 'var(--color-cream, #F9F8F6)', textDecoration: 'underline' }}>
-                              {loyaltyData.daysUntilStampDecay} day{loyaltyData.daysUntilStampDecay !== 1 ? 's' : ''}
-                            </strong>{' '}
-                            to keep current stamps and earn your next one! If {effectivePolicyDays} days pass without a visit, 1 stamp will expire ({serviceLabel}: {effectivePolicyDays} days validity).
-                          </span>
+                      <div style={{ lineHeight: 1.45, flex: 1 }}>
+                        {isWarning ? (
+                          <>
+                            <span style={{ fontWeight: 700, color: '#f87171' }}>
+                              ⚠️ URGENT — Inactivity Warning:
+                            </span>{' '}
+                            <span>
+                              1 stamp will expire in{' '}
+                              <strong style={{ color: '#ffffff', textDecoration: 'underline' }}>
+                                {daysUntilDecay} day{daysUntilDecay !== 1 ? 's' : ''}
+                              </strong>{' '}
+                              unless you visit the salon! ({serviceLabel} policy: {effectivePolicyDays} days validity).
+                            </span>
+                          </>
+                        ) : currentStamps > 0 ? (
+                          <>
+                            <span style={{ fontWeight: 700, color: 'var(--gold-primary)' }}>
+                              ⏳ Visit Policy — {serviceLabel} ({effectivePolicyDays} Days Validity):
+                            </span>{' '}
+                            <span>
+                              Next visit due within{' '}
+                              <strong style={{ color: 'var(--color-cream, #F9F8F6)', textDecoration: 'underline' }}>
+                                {daysUntilDecay} day{daysUntilDecay !== 1 ? 's' : ''}
+                              </strong>{' '}
+                              to keep your active stamps and earn stamp #{Math.min(5, currentStamps + 1)}/5!
+                            </span>
+                          </>
+                        ) : latestVisit ? (
+                          <>
+                            <span style={{ fontWeight: 700, color: 'var(--gold-primary)' }}>
+                              ✨ Next Cycle Ready:
+                            </span>{' '}
+                            <span>
+                              Last service was <strong>{serviceLabel}</strong> ({effectivePolicyDays} days validity). Visit salon to start your next 5-stamp reward card!
+                            </span>
+                          </>
                         ) : (
-                          <span>
-                            Beard & Haircut + Beard are valid for <strong style={{ color: 'var(--gold-primary)' }}>25 days</strong>; Haircut is valid for <strong style={{ color: 'var(--gold-primary)' }}>45 days</strong>.
-                            {latestVisit ? ` Last service was ${serviceLabel} (${effectivePolicyDays} days policy).` : ' Visit salon to collect your first stamp!'}
-                          </span>
+                          <>
+                            <span style={{ fontWeight: 700, color: 'var(--gold-primary)' }}>
+                              ⏳ Welcome to Classic Cut Loyalty:
+                            </span>{' '}
+                            <span>
+                              Haircut is valid for <strong style={{ color: 'var(--gold-primary)' }}>45 days</strong>; Beard & Combo are valid for <strong style={{ color: 'var(--gold-primary)' }}>25 days</strong>. Visit salon to collect your first stamp!
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>

@@ -203,6 +203,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [customers, setCustomers] = useState([]);
   const [totalCustomersCount, setTotalCustomersCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchDebounceRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', msg: '' });
   const [awardingUserId, setAwardingUserId] = useState(null);
@@ -230,7 +231,6 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [customerForStamp, setCustomerForStamp] = useState(null);
   const [selectedServiceType, setSelectedServiceType] = useState('Haircut Only');
   const [customServiceName, setCustomServiceName] = useState('');
-  const [stampNotes, setStampNotes] = useState('');
   const [awardStampLoading, setAwardStampLoading] = useState(false);
 
   // Coupon redemption code & QR scanner state
@@ -457,16 +457,26 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     }
   };
 
+  // Initial Admin Data Fetch on Modal Open
   useEffect(() => {
     if (isOpen && isAdmin) {
       fetchCustomers(searchQuery, customerPage, customerPageSize);
       fetchDeletedCustomers();
-      fetchCoupons(couponFilterStatus, couponSearchQuery);
       if (isSuperAdmin) {
         fetchStaffList();
       }
     }
-  }, [isOpen, isAdmin, isSuperAdmin, couponFilterStatus, couponSearchQuery]);
+  }, [isOpen, isAdmin, isSuperAdmin]);
+
+  // Debounced Coupon Filter & Search
+  useEffect(() => {
+    if (isOpen && isAdmin) {
+      const timer = setTimeout(() => {
+        fetchCoupons(couponFilterStatus, couponSearchQuery);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isAdmin, couponFilterStatus, couponSearchQuery]);
 
   // Zero-Reload Real-time Updates Listener
   useEffect(() => {
@@ -537,7 +547,6 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     setCustomerForStamp(customer);
     setSelectedServiceType('Haircut Only');
     setCustomServiceName('');
-    setStampNotes('');
   };
 
   const submitAwardStamp = async (e) => {
@@ -556,7 +565,6 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
         userId: customerForStamp._id,
         serviceType: selectedServiceType,
         serviceName: customServiceName.trim() || selectedServiceType,
-        notes: stampNotes.trim() || 'Awarded at salon counter by admin',
       });
 
       setFeedback({
@@ -1079,7 +1087,10 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                       const val = e.target.value;
                       setSearchQuery(val);
                       setCustomerPage(1);
-                      fetchCustomers(val, 1, customerPageSize);
+                      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                      searchDebounceRef.current = setTimeout(() => {
+                        fetchCustomers(val, 1, customerPageSize);
+                      }, 280);
                     }}
                     className="input-field"
                     style={{ paddingLeft: '2.5rem' }}
@@ -2040,6 +2051,23 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                       setCmsForm({
                         ...cmsForm,
                         openingHours: { ...cmsForm.openingHours, weekend: e.target.value },
+                      })
+                    }
+                  />
+                </div>
+
+                {/* Monday Schedule / Status */}
+                <div className="input-group">
+                  <label className="input-label">Monday Schedule / Status</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="CLOSED (Shop is closed on every Monday)"
+                    value={cmsForm.openingHours?.monday || ''}
+                    onChange={(e) =>
+                      setCmsForm({
+                        ...cmsForm,
+                        openingHours: { ...cmsForm.openingHours, monday: e.target.value },
                       })
                     }
                   />
@@ -3098,12 +3126,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                             </div>
                           </div>
 
-                          {/* Row 3: Notes & Redemption Details */}
-                          {v.notes && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              Notes: {v.notes}
-                            </div>
-                          )}
+
 
                           {isRedeemed && (
                             <div
@@ -3403,19 +3426,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Notes Input */}
-                <div className="input-group">
-                  <label className="input-label">Notes (Optional)</label>
-                  <input
-                    type="text"
-                    maxLength={200}
-                    value={stampNotes}
-                    onChange={(e) => setStampNotes(e.target.value)}
-                    placeholder="e.g. Counter visit, stylist name, requested styling"
-                    className="input-field"
-                    style={{ fontSize: '0.85rem' }}
-                  />
-                </div>
+
 
                 {/* Modal Action Buttons */}
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>

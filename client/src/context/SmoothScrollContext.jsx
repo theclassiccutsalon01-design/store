@@ -21,18 +21,29 @@ export const SmoothScrollProvider = ({ children }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const isTouch =
+    const isTouchMobile =
       typeof window !== 'undefined' &&
-      ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 860);
+      (window.innerWidth <= 860 ||
+        (('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 1)) &&
+          !window.matchMedia('(pointer: fine)').matches));
+
+    // On mobile/touch devices, use 100% native hardware-composited momentum scrolling (120fps)
+    // Avoids JS event loop congestion, eliminates stuck/frozen scroll, and ensures maximum battery efficiency on low-end phones
+    if (isTouchMobile) {
+      ScrollTrigger.refresh();
+      return () => {
+        ScrollTrigger.refresh();
+      };
+    }
 
     const lenis = new Lenis({
-      duration: 1.05,
+      duration: 0.82, // Snappy & buttery smooth (removes spongy lag on laptops)
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: isTouch ? 0 : 1.0,
+      wheelMultiplier: 0.92,
+      touchMultiplier: 1.0,
       syncTouch: false,
       infinite: false,
       prevent: (node) => {
@@ -78,12 +89,16 @@ export const SmoothScrollProvider = ({ children }) => {
     if (lenisRef.current) {
       lenisRef.current.scrollTo(target, {
         offset: options.offset || 0,
-        duration: options.duration || 1.0,
+        duration: options.duration || 0.82,
         easing: options.easing,
       });
     } else {
       const el = typeof target === 'string' ? document.querySelector(target) : target;
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) {
+        const offset = options.offset || 0;
+        const targetTop = el.getBoundingClientRect().top + window.scrollY + offset;
+        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+      }
     }
   };
 
@@ -105,8 +120,10 @@ export const SmoothScrollProvider = ({ children }) => {
 
   const stopScroll = () => {
     lockCountRef.current = Math.max(0, lockCountRef.current) + 1;
-    lenisRef.current?.stop();
-    document.body.classList.add('lenis-stopped');
+    if (lenisRef.current) {
+      lenisRef.current.stop();
+      document.body.classList.add('lenis-stopped');
+    }
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
   };
@@ -115,7 +132,7 @@ export const SmoothScrollProvider = ({ children }) => {
     lockCountRef.current = Math.max(0, lockCountRef.current - 1);
     const hasActiveModal = Boolean(
       document.querySelector(
-        '[role="dialog"], .modal-overlay, .mobile-drawer-overlay, .service-modal-backdrop'
+        '[role="dialog"], .modal-overlay, .mobile-drawer-overlay, .service-modal-backdrop, .admin-modal-overlay'
       )
     );
     if (!hasActiveModal || lockCountRef.current <= 0) {
@@ -128,7 +145,7 @@ export const SmoothScrollProvider = ({ children }) => {
     const handleSafetyUnlock = () => {
       const hasActiveModal = Boolean(
         document.querySelector(
-          '[role="dialog"], .modal-overlay, .mobile-drawer-overlay, .service-modal-backdrop'
+          '[role="dialog"], .modal-overlay, .mobile-drawer-overlay, .service-modal-backdrop, .admin-modal-overlay'
         )
       );
       if (!hasActiveModal && (document.body.style.overflow === 'hidden' || document.documentElement.style.overflow === 'hidden')) {

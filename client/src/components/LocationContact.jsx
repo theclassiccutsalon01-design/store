@@ -7,6 +7,7 @@ export const LocationContact = () => {
 
   const phoneDisplay = config.phone || '+91 93221 88848';
   const phoneTel = config.phone?.replace(/[^0-9+]/g, '') || '9322188848';
+  const whatsappDisplay = config.whatsapp || '+91 93221 88848';
   const whatsappNum = config.whatsapp?.replace(/[^0-9]/g, '') || '919322188848';
   const emailVal = config.email || 'theclassiccutsalon01@gmail.com';
   const addressVal = config.address || 'At Gevrai jategaon road Rohithal, Tq gevrai dist beed 431127 Maharashtra';
@@ -118,7 +119,7 @@ export const LocationContact = () => {
                     rel="noopener noreferrer"
                     style={{ color: '#2ecc71', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    <span>Chat on WhatsApp ({phoneDisplay})</span>
+                    <span>Chat on WhatsApp ({whatsappDisplay})</span>
                     <ExternalLink size={12} />
                   </a>
                 </div>
@@ -149,10 +150,10 @@ export const LocationContact = () => {
                   <span style={infoLabelStyle}>Working Hours & Schedule</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.2rem' }}>
                     <p style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
-                      <strong style={{ color: 'var(--gold-primary)' }}>Tue – Fri:</strong> 9:30 AM – 9:00 PM
+                      <strong style={{ color: 'var(--gold-primary)' }}>Weekday:</strong> {config.openingHours?.weekday || 'Tuesday to Friday: 9:30 AM - 9:00 PM'}
                     </p>
                     <p style={{ color: 'var(--color-cream, #F9F8F6)', fontSize: '0.84rem', margin: 0, fontWeight: 500 }}>
-                      <strong style={{ color: 'var(--gold-primary)' }}>Sat – Sun:</strong> 8:30 AM – 10:00 PM
+                      <strong style={{ color: 'var(--gold-primary)' }}>Weekend:</strong> {config.openingHours?.weekend || 'Saturday & Sunday: 8:30 AM - 10:00 PM'}
                     </p>
                     <div
                       style={{
@@ -172,7 +173,7 @@ export const LocationContact = () => {
                       }}
                     >
                       <span>🔴</span>
-                      <span>Shop is closed on every Monday</span>
+                      <span>{config.openingHours?.monday || 'Shop is closed on every Monday'}</span>
                     </div>
                   </div>
                 </div>

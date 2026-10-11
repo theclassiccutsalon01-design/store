@@ -1,4 +1,5 @@
 import { SiteConfig } from '../models/SiteConfig.js';
+import { broadcastRealtimeEvent } from '../services/realtimeService.js';
 
 const defaultCMS = {
   salonName: 'The Classic Cut Salon',
@@ -109,7 +110,7 @@ export const updateSiteConfig = async (req, res) => {
       'email',
       'address',
       'mapEmbedUrl',
-      'openingHours',
+      'mapDirectionsUrl',
       'heroVideoUrl',
       'defaultOfferTitle',
       'defaultOfferDiscount',
@@ -121,7 +122,29 @@ export const updateSiteConfig = async (req, res) => {
       }
     });
 
+    if (req.body.openingHours && typeof req.body.openingHours === 'object') {
+      if (!config.openingHours) {
+        config.openingHours = {};
+      }
+      if (req.body.openingHours.weekday !== undefined) {
+        config.openingHours.weekday = String(req.body.openingHours.weekday).trim();
+      }
+      if (req.body.openingHours.weekend !== undefined) {
+        config.openingHours.weekend = String(req.body.openingHours.weekend).trim();
+      }
+      if (req.body.openingHours.monday !== undefined) {
+        config.openingHours.monday = String(req.body.openingHours.monday).trim();
+      }
+      config.markModified('openingHours');
+    }
+
     const updatedConfig = await config.save();
+
+    // Broadcast live update across all connected clients in real time
+    broadcastRealtimeEvent({
+      type: 'SITE_CONFIG_UPDATED',
+      config: updatedConfig,
+    });
 
     res.status(200).json({
       message: 'Site configuration updated successfully',
